@@ -13,7 +13,8 @@ from rich.panel import Panel
 import json
 
 from core.logging import ImmutableLog
-from core.drift import DriftEvent, Change
+from core.drift import DriftEvent
+from core.drift import DiffEngine
 
 
 class FilterPanel(Static):
@@ -28,6 +29,7 @@ class FilterPanel(Static):
             Label("Severity:"),
             Input(placeholder="info, warning, critical", id="filter-severity"),
             Button("Apply", id="apply-filter", variant="primary"),
+            Button("Export", id="export-events"),
             id="filter-controls"
         )
 
@@ -180,6 +182,10 @@ class DetailPanel(Static):
             Static("Select an event to view details", id="detail-content"),
             id="detail-scroll"
         )
+        yield Horizontal(
+            Button("View Diff", id="view-diff"),
+            id="detail-actions"
+        )
     
     def show_event(self, event: Optional[dict]) -> None:
         """Display event details."""
@@ -241,11 +247,15 @@ class DriftViewerApp(App):
         ("q", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
         ("/", "focus_filter", "Filter"),
+        ("e", "export", "Export"),
+        ("d", "show_diff", "Diff"),
     ]
     
     def __init__(self, log_path: Optional[Path] = None):
         super().__init__()
         self.log_path = log_path
+        self._diff_engine = DiffEngine()
+        self._last_export_path: Optional[Path] = None
     
     def compose(self) -> ComposeResult:
         """Create application widgets."""
@@ -262,12 +272,16 @@ class DriftViewerApp(App):
         """Handle button clicks."""
         if event.button.id == "apply-filter":
             self.apply_filters()
+        elif event.button.id == "export-events":
+            self.action_export()
         elif event.button.id == "next-page":
             event_list = self.query_one(EventList)
             event_list.next_page()
         elif event.button.id == "prev-page":
             event_list = self.query_one(EventList)
             event_list.prev_page()
+        elif event.button.id == "view-diff":
+            self.action_show_diff()
     
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         """Handle row selection in event list."""
@@ -299,6 +313,51 @@ class DriftViewerApp(App):
         """Focus filter input."""
         filter_input = self.query_one("#filter-type", Input)
         filter_input.focus()
+
+    def action_export(self) -> None:
+        """Export filtered events to a JSON file."""
+        event_list = self.query_one(EventList)
+        events = event_list.filtered_events or []
+        # Normalize entries to a consistent shape
+        export_data = []
+        for e in events:
+            if isinstance(e, dict) and 'data' in e:
+                export_data.append(e)
+            else:
+                export_data.append({"data": e})
+        export_dir = Path("logs")
+        export_dir.mkdir(parents=True, exist_ok=True)
+        export_path = export_dir / "forensic_export.json"
+        with open(export_path, "w", encoding="utf-8") as f:
+            import json as _json
+            _json.dump(export_data, f, indent=2)
+        self._last_export_path = export_path
+        # Update footer hint
+        self.screen.sub_title = f"Exported {len(export_data)} events → {export_path}"
+
+    def action_show_diff(self) -> None:
+        """Render a diff view for the selected event if trees are available."""
+        event_list = self.query_one(EventList)
+        detail_panel = self.query_one(DetailPanel)
+        selected = event_list.get_selected_event()
+        if not selected:
+            return
+        # Try to locate before/after trees from common locations
+        data = selected.get("data", selected)
+        details = data.get("details", data.get("metadata", {})) if isinstance(data, dict) else {}
+        before = details.get("before_tree") or details.get("before")
+        after = details.get("after_tree") or details.get("after")
+        if before and after:
+            try:
+                changes = self._diff_engine.diff(before, after)
+                summary = self._diff_engine.diff_summary(changes)
+                from rich.panel import Panel as _Panel
+                detail_panel.query_one("#detail-content", Static).update(_Panel(summary, title="Diff Summary"))
+                return
+            except Exception:
+                pass
+        # Fallback: show event JSON
+        detail_panel.show_event(selected)
 
 
 def render_forensic_viewer(log_path: Optional[Path] = None) -> None:

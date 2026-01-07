@@ -1,7 +1,12 @@
-"""Write events to immutable log."""
+"""Write events to immutable log.
+
+This writer maintains its own hash chain so standalone writes produce
+fully-formed log entries compatible with `ImmutableLog.verify_integrity()`.
+"""
 from typing import Any, Optional, TextIO
 import json
 import time
+from .hash_chain import HashChain
 
 
 class EventWriter:
@@ -19,6 +24,7 @@ class EventWriter:
         self.auto_flush = auto_flush
         self._file_handle: Optional[TextIO] = None
         self._write_count = 0
+        self._chain = HashChain()
         
         if log_file:
             self._open_file()
@@ -61,8 +67,19 @@ class EventWriter:
                     # Use a simple incrementing id for this writer instance
                     event_dict['entry_id'] = f"evt_{self._write_count+1}"
             
+            # Build hash-chained log entry matching ImmutableLog.append format
+            ts = event_dict.get('timestamp', time.time())
+            prev = self._chain.current_hash
+            entry_hash = self._chain.add_entry(event_dict, ts)
+            log_entry = {
+                "entry_hash": entry_hash,
+                "previous_hash": prev,
+                "timestamp": ts,
+                "data": event_dict,
+            }
+            
             # Write as JSON line
-            json_line = json.dumps(event_dict, separators=(',', ':'))
+            json_line = json.dumps(log_entry, separators=(',', ':'))
             self._file_handle.write(json_line + '\n')
             
             self._write_count += 1

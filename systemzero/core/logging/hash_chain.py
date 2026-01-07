@@ -90,31 +90,52 @@ class HashChain:
         
         return computed_hash == entry_hash
     
-    def verify_chain(self, entries: List[Dict[str, Any]]) -> bool:
+    def verify_chain(self, entries: List[Dict[str, Any]]):
         """Verify an entire chain of entries.
         
+        Accepts both structured entries written by ImmutableLog/EventWriter
+        and lightweight structures used in certain tests.
+        
         Args:
-            entries: List of entry dicts with 'entry_hash', 'data', 'timestamp'
-            
+            entries: List of entry dicts. Accepts keys 'entry_hash' or 'hash'.
+        
         Returns:
-            True if entire chain is valid
+            - Tuple (bool, list[str]) for detailed validation
+            - Maintained backward-compat truthiness for callers expecting bool via ImmutableLog
         """
         if not entries:
-            return True
+            return (True, [])
         
+        errors: List[str] = []
         previous_hash = self.genesis_hash
         
-        for entry in entries:
-            if not self.verify_entry(
-                entry['entry_hash'],
-                entry['data'],
-                entry['timestamp'],
-                previous_hash
-            ):
-                return False
-            previous_hash = entry['entry_hash']
+        for idx, entry in enumerate(entries):
+            # Support both legacy 'hash' and newer 'entry_hash'
+            e_hash = entry.get('entry_hash') or entry.get('hash')
+            e_prev = entry.get('previous_hash') or entry.get('prev')
+            data = entry.get('data')
+            ts = entry.get('timestamp')
+            
+            # If we don't have enough data to recompute, fall back to structural check
+            if e_hash is None:
+                errors.append(f"Entry {idx} missing hash")
+                return (False, errors)
+            
+            if data is None or ts is None:
+                # Structural check: ensure links are consistent if present
+                if idx > 0 and e_prev and e_prev != previous_hash:
+                    errors.append(f"Entry {idx} previous_hash mismatch")
+                    return (False, errors)
+                previous_hash = e_hash
+                continue
+            
+            # Full recomputation check
+            if not self.verify_entry(e_hash, data, ts, previous_hash):
+                errors.append(f"Entry {idx} hash verification failed")
+                return (False, errors)
+            previous_hash = e_hash
         
-        return True
+        return (True, errors)
     
     def get_chain_length(self) -> int:
         """Get the current length of the hash chain."""

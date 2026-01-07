@@ -78,7 +78,10 @@ class ImmutableLog:
         Returns:
             True if log integrity is valid
         """
-        return self.hash_chain.verify_chain(self._entries)
+        result = self.hash_chain.verify_chain(self._entries)
+        if isinstance(result, tuple):
+            return bool(result[0])
+        return bool(result)
     
     def get_entries(self, start: int = 0, end: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get log entries.
