@@ -37,16 +37,20 @@ class TemplateValidator:
         # Check required fields
         if not self._validate_required_fields(template):
             return False
-        
+
+        # Minimal structural checks
+        if not template.get("screen_id"):
+            return False
+
         # Check field types
         if not self._validate_field_types(template):
             return False
-        
+
         # Check transitions format
         if "valid_transitions" in template:
             if not self._validate_transitions(template["valid_transitions"]):
                 return False
-        
+
         return True
     
     def validate_with_errors(self, template: Dict[str, Any]) -> tuple[bool, List[str]]:
