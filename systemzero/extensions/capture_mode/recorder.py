@@ -38,7 +38,7 @@ class Recorder:
         signatures = self.signature_generator.generate_multi(normalized)
 
         payload = {
-            "captured_at": datetime.utcnow().isoformat() + "Z",
+            "captured_at": datetime.now(timezone.utc).isoformat(),
             "raw": raw_tree,
             "normalized": normalized,
             "signatures": signatures,

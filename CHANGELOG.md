@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 4] - 2026-01-07 - Extension + Template Engine ✓ COMPLETE
+
+### Summary
+Shipped full capture-to-template pipeline with UI tree export, TemplateBuilder for YAML generation, validators, and multi-format log exporters. Achieved 100% test pass rate (103/103). All Priority 2 enhancements stable (matcher score, diff structure, role classification, noise filters).
+
+### Highlights
+- **Capture Pipeline**: Recorder saves normalized trees + signatures to disk with metadata
+- **TemplateBuilder**: Converts captures to YAML templates with semantic node extraction
+- **Validators**: TemplateMetadataValidator, CaptureValidator for schema/format checks
+- **LogExporter**: JSON Lines, CSV, HTML formats for logs and templates
+- **CLI Commands**: `capture`, `baseline` (list/build/validate/show), `export` (--format json/csv/html)
+- **Quality**: 103/103 tests passing; full end-to-end workflow tested
+
+### Deliverables
+- Capture mode: Recorder, UITreeExport, SignatureExport, CLI command
+- TemplateBuilder with YAML export and validation
+- Exporters for logs/templates in multiple formats
+- New CLI commands: capture, baseline, export with full argparse wiring
+- 3 new test modules covering all features
+
+---
+
 ## [Phase 3] - 2026-01-07 - Operator Intelligence Layer ✓ COMPLETE
 
 ### Summary

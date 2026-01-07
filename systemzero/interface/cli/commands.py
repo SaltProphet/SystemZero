@@ -303,23 +303,138 @@ def cmd_consistency(log_path: Optional[str] = None) -> None:
     render_consistency_monitor(log_file)
 
 
-def cmd_baseline(action: str, template_id: Optional[str] = None) -> None:
-    """Manage baseline templates.
+def cmd_baseline(action: str, build_source: Optional[str] = None, build_out: Optional[str] = None,
+                template_id: Optional[str] = None, app: Optional[str] = None) -> None:
+    """Manage baseline templates (Phase 4).
     
     Args:
-        action: Action to perform (list, show, validate, export)
+        action: Action (list, build, validate, show)
+        build_source: Source capture file for build action
+        build_out: Output YAML path for build action
         template_id: Template identifier for show/validate actions
+        app: App name for template metadata
     """
-    print(f"[SZ] baseline: action={action}, template={template_id}")
-    # TODO Phase 5: Implement baseline management
+    from extensions.template_builder.builder import TemplateBuilder
+    from core.baseline import TemplateLoader
+
+    if action == "list":
+        display("[bold cyan]Available Templates[/bold cyan]")
+        loader = TemplateLoader()
+        templates = loader.load_all()
+        if not templates:
+            display("[yellow]No templates found[/yellow]")
+        else:
+            for screen_id in sorted(templates.keys()):
+                display(f"  • {screen_id}")
+
+    elif action == "build":
+        if not build_source:
+            display("[red]Error: --source required for build action[/red]")
+            return
+        if not build_out:
+            build_out = f"core/baseline/templates/{Path(build_source).stem}.yaml"
+
+        display(f"[bold cyan]Building template from {build_source}[/bold cyan]")
+        builder = TemplateBuilder()
+        
+        screen_id = Path(build_source).stem
+        try:
+            template = builder.build_from_capture(Path(build_source), screen_id, app)
+            builder.save_yaml(template, Path(build_out))
+            display(f"[green]✓ Template saved[/green] → {build_out}")
+            display(f"  screen_id: {screen_id}")
+            display(f"  required_nodes: {len(template['required_nodes'])}")
+            display(f"  structure_signature: {template['structure_signature'][:16]}...")
+        except Exception as e:
+            display(f"[red]Error: {e}[/red]")
+
+    elif action == "validate":
+        if not template_id:
+            display("[red]Error: --template required for validate action[/red]")
+            return
+        loader = TemplateLoader()
+        template = loader.get(template_id)
+        if not template:
+            display(f"[red]Template not found: {template_id}[/red]")
+            return
+        
+        from core.baseline import TemplateValidator
+        validator = TemplateValidator()
+        is_valid, errors = validator.validate_with_errors(template)
+        
+        if is_valid:
+            display(f"[green]✓ Template valid: {template_id}[/green]")
+        else:
+            display(f"[red]✗ Template invalid: {template_id}[/red]")
+            for error in errors:
+                display(f"  - {error}")
+
+    elif action == "show":
+        if not template_id:
+            display("[red]Error: --template required for show action[/red]")
+            return
+        loader = TemplateLoader()
+        template = loader.get(template_id)
+        if not template:
+            display(f"[red]Template not found: {template_id}[/red]")
+            return
+        
+        import json
+        display(json.dumps(template, indent=2))
+
+    else:
+        display(f"[red]Unknown action: {action}[/red]")
 
 
-def cmd_export(log_path: str, output_format: str = "json") -> None:
-    """Export log data to various formats.
+def cmd_export(log_path: Optional[str] = None, output_format: str = "json", output_path: Optional[str] = None) -> None:
+    """Export log data or templates to various formats.
     
     Args:
-        log_path: Path to log file
+        log_path: Path to log file to export
         output_format: Output format (json, csv, html)
+        output_path: Output file path (defaults to logs/export_<timestamp>.<ext>)
     """
-    print(f"[SZ] export: log={log_path}, format={output_format}")
-    # TODO Phase 5: Implement export functionality
+    from extensions.template_builder.exporters import LogExporter
+    from core.logging import ImmutableLog
+    from datetime import datetime
+
+    if not log_path:
+        log_path = "logs/systemzero.log"
+
+    if not Path(log_path).exists():
+        display(f"[red]Log file not found: {log_path}[/red]")
+        return
+
+    display(f"[bold cyan]Exporting {log_path} to {output_format}...[/bold cyan]")
+
+    # Load log
+    log = ImmutableLog(log_path)
+    entries = log.get_entries()
+
+    if not entries:
+        display("[yellow]Log is empty[/yellow]")
+        return
+
+    # Determine output path
+    if not output_path:
+        timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+        ext = output_format if output_format in ["csv", "html"] else "json"
+        output_path = f"logs/export_{timestamp}.{ext}"
+
+    # Export
+    exporter = LogExporter()
+    try:
+        if output_format == "json":
+            exporter.to_json(entries, Path(output_path))
+        elif output_format == "csv":
+            exporter.to_csv(entries, Path(output_path))
+        elif output_format == "html":
+            exporter.to_html(entries, Path(output_path), title=f"Log Export from {log_path}")
+        else:
+            display(f"[red]Unsupported format: {output_format}[/red]")
+            return
+
+        display(f"[green]✓ Exported[/green] → {output_path}")
+        display(f"  entries: {len(entries)}")
+    except Exception as e:
+        display(f"[red]Error: {e}[/red]")
