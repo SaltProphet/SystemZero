@@ -1,0 +1,35 @@
+# System//Zero API Keys
+# 
+# This file stores hashed API keys with role-based access control.
+# Keys are hashed using SHA256 - plaintext keys are never stored.
+#
+# Roles:
+#   - admin: Full access (read, write, config, key management)
+#   - operator: Read + write access (captures, templates, logs)
+#   - readonly: Read-only access (status, logs, templates, dashboard)
+#
+# To generate a new key, use the /auth/token endpoint or:
+#   python -c "from interface.api.auth import APIKeyManager; print(APIKeyManager().create_key('my-key', 'operator'))"
+
+keys:
+  # Example key (role: admin)
+  # This is a demo key - replace with your own keys
+  # Plaintext: demo-admin-key-please-change-this
+  # To generate: python -c "from interface.api.auth import APIKeyManager; m = APIKeyManager(); print(m.create_key('demo-admin', 'admin', 'Demo admin key'))"
+  
+  # Format:
+  # <sha256_hash>:
+  #   name: <friendly_name>
+  #   role: <admin|operator|readonly>
+  #   description: <optional_description>
+  #   created_at: <iso8601_timestamp>
+  #   last_used: <iso8601_timestamp or null>
+  #   use_count: <integer>
+
+# Note: To create your first key programmatically:
+#
+# from interface.api.auth import APIKeyManager
+# manager = APIKeyManager()
+# key = manager.create_key("my-service", "operator", "Service account for automation")
+# print(f"Generated key: {key}")
+# print("Save this key securely - it will not be shown again!")

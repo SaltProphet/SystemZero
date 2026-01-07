@@ -4,9 +4,11 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
+
+from interface.api.auth import verify_api_key, get_key_manager, Role, APIKeyManager
 
 from core.accessibility import TreeCapture
 from core.normalization import TreeNormalizer, SignatureGenerator
@@ -66,11 +68,26 @@ class DashboardData(BaseModel):
     total_events: int
 
 
+class TokenRequest(BaseModel):
+    """Request to create a new API token."""
+    name: str
+    role: str = Role.READONLY
+    description: str = ""
+
+
+class TokenResponse(BaseModel):
+    """Response with new API token."""
+    token: str
+    name: str
+    role: str
+    message: str
+
+
 # Create FastAPI app
 app = FastAPI(
     title="System//Zero API",
-    description="REST API for environment parser drift detection",
-    version="0.5.0"
+    description="REST API for environment parser drift detection with authentication",
+    version="0.6.0"
 )
 
 
@@ -79,12 +96,14 @@ def root():
     """API root endpoint."""
     return {
         "service": "System//Zero",
-        "version": "0.5.0",
+        "version": "0.6.0",
         "docs": "/docs",
+        "authentication": "X-API-Key header required for POST endpoints",
         "endpoints": {
-            "captures": "POST /captures",
-            "templates": "GET /templates, POST /templates",
-            "logs": "GET /logs",
+            "auth": "POST /auth/token (admin), POST /auth/validate",
+            "captures": "POST /captures (requires auth)",
+            "templates": "GET /templates, POST /templates (requires auth)",
+            "logs": "GET /logs, GET /logs/export",
             "status": "GET /status",
             "dashboard": "GET /dashboard"
         }
@@ -129,8 +148,19 @@ def get_status() -> StatusResponse:
 
 
 @app.post("/captures", response_model=CaptureResponse)
-def create_capture(request: CaptureRequest) -> CaptureResponse:
-    """Capture a UI tree."""
+def create_capture(
+    request: CaptureRequest,
+    api_key_metadata: dict = Depends(verify_api_key)
+) -> CaptureResponse:
+    """Capture a UI tree (requires authentication)."""
+    # Check role permissions (operator or admin)
+    role = api_key_metadata.get("role")
+    if role not in [Role.OPERATOR, Role.ADMIN]:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Insufficient permissions. Role '{role}' cannot create captures."
+        )
+    
     try:
         recorder = Recorder()
         result = recorder.record(tree=request.tree)
@@ -188,8 +218,21 @@ def get_template(screen_id: str) -> TemplateResponse:
 
 
 @app.post("/templates")
-def build_template(capture_path: str = Query(...), screen_id: str = Query(...), app: str = Query("unknown")):
-    """Build a template from a capture file."""
+def build_template(
+    capture_path: str = Query(...),
+    screen_id: str = Query(...),
+    app: str = Query("unknown"),
+    api_key_metadata: dict = Depends(verify_api_key)
+):
+    """Build a template from a capture file (requires authentication)."""
+    # Check role permissions (operator or admin)
+    role = api_key_metadata.get("role")
+    if role not in [Role.OPERATOR, Role.ADMIN]:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Insufficient permissions. Role '{role}' cannot create templates."
+        )
+    
     try:
         builder = TemplateBuilder()
         template = builder.build_from_capture(Path(capture_path), screen_id, app)
@@ -292,6 +335,72 @@ def get_dashboard_data() -> DashboardData:
             compliance=max(0.0, min(1.0, compliance)),
             total_events=total_events
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/auth/token", response_model=TokenResponse)
+def create_token(
+    request: TokenRequest,
+    api_key_metadata: dict = Depends(verify_api_key)
+) -> TokenResponse:
+    """Create a new API token (admin only)."""
+    # Only admins can create tokens
+    role = api_key_metadata.get("role")
+    if role != Role.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Only administrators can create API tokens"
+        )
+    
+    try:
+        manager = get_key_manager()
+        token = manager.create_key(
+            name=request.name,
+            role=request.role,
+            description=request.description
+        )
+        
+        return TokenResponse(
+            token=token,
+            name=request.name,
+            role=request.role,
+            message="Token created successfully. Save this token securely - it will not be shown again."
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/auth/validate")
+def validate_token(api_key_metadata: dict = Depends(verify_api_key)):
+    """Validate an API token and return metadata."""
+    return {
+        "valid": True,
+        "name": api_key_metadata.get("name"),
+        "role": api_key_metadata.get("role"),
+        "created_at": api_key_metadata.get("created_at"),
+        "last_used": api_key_metadata.get("last_used"),
+        "use_count": api_key_metadata.get("use_count")
+    }
+
+
+@app.get("/auth/keys")
+def list_keys(api_key_metadata: dict = Depends(verify_api_key)):
+    """List all API keys (admin only)."""
+    # Only admins can list keys
+    role = api_key_metadata.get("role")
+    if role != Role.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Only administrators can list API keys"
+        )
+    
+    try:
+        manager = get_key_manager()
+        keys = manager.list_keys()
+        return {"keys": keys, "total": len(keys)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
