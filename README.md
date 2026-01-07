@@ -9,8 +9,8 @@ System//Zero is a tactical clarity tool for tracking how systems behave — plat
 
 ---
 
-## Current Status: Phase 2  
-Manual logging is active. Core directory structure is in place. Phase 2 focuses on real-time logging, pattern detection, and operator feedback loops.
+## Current Status: Phase 5  
+FastAPI REST API and CLI server are live. Core capture → template → drift pipeline is stable with 111/111 tests passing. Operators can launch `run.py server` for HTTP access to captures, templates, logs, and dashboard data.
 
 ---
 
@@ -45,32 +45,44 @@ Manual logging is active. Core directory structure is in place. Phase 2 focuses 
 - Initial breach tracking logic  
 - Analysis of suppression patterns
 
-### 🔄 Phase 2: Pattern Detection + Feedback  
+### ✅ Phase 2: Pattern Detection + Feedback  
 - Real-time logging interface (CLI)  
 - Pattern recognition (decline clusters, offer gaps, system behavior)  
 - Operator feedback loop: log → analyze → adjust  
 - Debrief and recalibration modules  
 - Prep for UI scaffolding
 
-### 🔜 Phase 3: UI + Automation  
-- Local-first UI with immutable log views  
-- Screenshot parsing and notification hooks  
-- Breach detection heuristics  
+### ✅ Phase 3: UI + Automation  
+- Local-first Textual UIs for dashboard, replay, consistency monitor  
+- Immutable log views with filtering and diff summaries  
 - Operator-defined filters and triggers  
 - Exportable logs and summaries
 
+### ✅ Phase 4: Capture + Template Engine  
+- Recorder + UI tree export, TemplateBuilder, validators, exporters  
+- CLI capture/baseline/export commands; full capture-to-template flow  
+- 103/103 tests passing
+
+### ✅ Phase 5: REST API + CLI Server  
+- FastAPI app exposing status, captures, templates, logs, dashboard  
+- CLI `server` command to launch API (`run.py server --host --port --reload`)  
+- API tests in place; 111/111 tests passing
+
+### 🔮 Phase 6: Observability + Deployment Hardening (planning)  
+- AuthZ/authN for API, metrics, health probes, container packaging
+
 ---
 
-## Usage (Phase 2)
+## Usage (Phase 5)
 
-1. **Log Offers**  
-   Manually enter offer data (timestamp, payout, distance, outcome).  
-2. **Review Logs**  
-   Use CLI tools to view logs, filter by outcome, and detect patterns.  
-3. **Debrief**  
-   Run post-shift summaries to identify suppression or drift.  
-4. **Adjust**  
-   Use insights to change strategy or escalate.
+1. **Run REST API**  
+   `python run.py server --host 0.0.0.0 --port 8000 --reload`
+2. **Capture and build templates**  
+   `python run.py capture` then `python run.py baseline --build <capture>`  
+3. **Query via API**  
+   Use `/status`, `/captures`, `/templates`, `/logs`, `/dashboard` (see `tests/test_api.py` for examples).  
+4. **Export logs**  
+   `python run.py export --format html` or GET `/logs/export?format=html`
 
 ---
 

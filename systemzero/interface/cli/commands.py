@@ -387,16 +387,16 @@ def cmd_baseline(action: str, build_source: Optional[str] = None, build_out: Opt
 
 
 def cmd_export(log_path: Optional[str] = None, output_format: str = "json", output_path: Optional[str] = None) -> None:
-    """Export log data or templates to various formats.
+    """Export log data to various formats.
     
     Args:
         log_path: Path to log file to export
         output_format: Output format (json, csv, html)
         output_path: Output file path (defaults to logs/export_<timestamp>.<ext>)
     """
+    from datetime import datetime
     from extensions.template_builder.exporters import LogExporter
     from core.logging import ImmutableLog
-    from datetime import datetime
 
     if not log_path:
         log_path = "logs/systemzero.log"
@@ -417,7 +417,7 @@ def cmd_export(log_path: Optional[str] = None, output_format: str = "json", outp
 
     # Determine output path
     if not output_path:
-        timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
         ext = output_format if output_format in ["csv", "html"] else "json"
         output_path = f"logs/export_{timestamp}.{ext}"
 
@@ -438,3 +438,22 @@ def cmd_export(log_path: Optional[str] = None, output_format: str = "json", outp
         display(f"  entries: {len(entries)}")
     except Exception as e:
         display(f"[red]Error: {e}[/red]")
+
+
+def cmd_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False) -> None:
+    """Start FastAPI REST server.
+    
+    Args:
+        host: Server host (default: 0.0.0.0)
+        port: Server port (default: 8000)
+        reload: Auto-reload on code changes (development only)
+    """
+    import uvicorn
+    from interface.api.server import app
+
+    display(f"[bold cyan]Starting System//Zero API server[/bold cyan]")
+    display(f"  Host: {host}")
+    display(f"  Port: {port}")
+    display(f"  Docs: http://{host}:{port}/docs")
+    
+    uvicorn.run(app, host=host, port=port, reload=reload, log_level="info")

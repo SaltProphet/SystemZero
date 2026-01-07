@@ -55,5 +55,5 @@ class Recorder:
         """Compute output path, defaulting to captures/ with timestamped filename."""
         if output_path:
             return Path(output_path)
-        timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         return Path("captures") / f"capture_{timestamp}.json"

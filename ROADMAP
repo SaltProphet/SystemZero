@@ -198,6 +198,33 @@ Goal: Capture new screens and build reusable templates
 - Phase 5 can now build REST API, versioned template store, bulk operations on captured data
 - See PHASE4_COMPLETION.md for detailed workflow and usage examples
 
+🚀 Phase 5: REST API + Remote Control ✓ COMPLETE
+
+Goal: Expose pipeline operations over HTTP and provide a CLI server for operators.
+
+**Status**: COMPLETE – 111/111 tests passing, FastAPI service online.
+
+[x] FastAPI server with endpoints for status, captures, templates, logs, dashboard
+[x] CLI `server` command (`run.py server --host --port --reload`)
+[x] Log export API (json/csv/html) and template listing/building
+[x] API test suite (`tests/test_api.py`) covering all routes
+[x] Deprecation cleanup (Query pattern, timezone-aware timestamps)
+
+**Next Actions**:
+- Harden auth/config for API (API keys, rate limits)
+- Package server launch in container/task runners
+- Expose template versioning endpoints
+
+🔮 Phase 6: Observability + Deployment Hardening [PLANNING]
+
+Goal: Secure, observable deployment with operator metrics and configuration management.
+
+- Add authentication/authorization on API (tokens, roles)
+- Integrate structured request logging and metrics (latency, error rates)
+- Add health/readiness probes and graceful shutdown hooks
+- Provide Docker image + compose profile with volume mounts for logs/templates
+- Expand dashboard data to include API health and ingestion counters
+
 🛠 Tools: YAML, pathlib, csv, json
 
 ⚙️ Phase 5: Deployment + Operator Tooling
