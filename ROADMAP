@@ -227,42 +227,4 @@ Goal: Secure, observable deployment with operator metrics and configuration mana
 
 🛠 Tools: YAML, pathlib, csv, json
 
-⚙️ Phase 5: Deployment + Operator Tooling
-
-Goal: Make System//Zero usable in the field
-
-[ ] Build REST API with FastAPI
-
-[ ] Build REST API with FastAPI or Flask
-
-[ ] Run as background service via systemd or pm2
-
-🛠 Tools: FastAPI, GitHub CLI, systemd
-
-🔐 Phase 6: Security + Integrity
-
-Goal: Ensure tamper-evidence and runtime trust
-
-[ ] Implement hash-chain verification for logs
-
-[ ] Sign and validate baseline templates
-
-[ ] Detect environment tampering (e.g. disabled accessibility)
-
-🛠 Tools: Python cryptography, GPG, GitHub Secrets
-
-🚀 Phase 7: Finalization + CI/CD
-
-Goal: Harden, document, and ship
-
-[ ] Full test coverage with pytest
-
-[ ] CI/CD via GitHub Actions
-
-[ ] Operator documentation in docs/
-
-[ ] Public repo prep: README, LICENSE, CONTRIBUTING
-
-[ ] Optional: Dockerfile + deployment script
-
 This roadmap is modular. Each phase can be tracked as a GitHub Project or Issue board. All modules are deterministic and testable in isolation.
