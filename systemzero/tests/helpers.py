@@ -105,6 +105,24 @@ def create_temp_log() -> Tuple[str, ImmutableLog]:
     return (log_path, log)
 
 
+def create_test_log(entries: Optional[List[Any]] = None) -> Tuple[str, ImmutableLog]:
+    """Create a test log file with optional pre-populated entries.
+    
+    Args:
+        entries: Optional list of entries to append (DriftEvent objects or dicts)
+        
+    Returns:
+        Tuple of (log_path, log_instance)
+    """
+    log_path, log = create_temp_log()
+    
+    if entries:
+        for entry in entries:
+            log.append(entry)
+    
+    return (log_path, log)
+
+
 def assert_drift_detected(
     tree: Dict[str, Any],
     template: Dict[str, Any],

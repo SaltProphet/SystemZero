@@ -50,6 +50,10 @@ def template_from_tree(tree: Dict[str, Any], screen_id: str = "auto_generated") 
     return build_template(screen_id, tree, required_nodes, [])
 
 
+# Alias for backwards compatibility
+generate_template = template_from_tree
+
+
 def _extract_node_names(node: Any, names: List[str] = None) -> List[str]:
     """Recursively extract all node names from a tree."""
     if names is None:

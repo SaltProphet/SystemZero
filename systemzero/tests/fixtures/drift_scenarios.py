@@ -178,6 +178,10 @@ SEQUENCE_VIOLATION_DRIFT: Dict[str, Any] = {
 }
 
 
+# Alias for backwards compatibility
+CONTENT_CHANGE_DRIFT = TEXT_CHANGE_DRIFT
+
+
 def get_drift_scenario(name: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Get a drift scenario by name.
     
