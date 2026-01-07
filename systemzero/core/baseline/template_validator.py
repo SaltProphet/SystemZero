@@ -41,6 +41,11 @@ class TemplateValidator:
         # Minimal structural checks
         if not template.get("screen_id"):
             return False
+        # Treat required_nodes as optional but validate if present
+        if "required_nodes" in template and not isinstance(template.get("required_nodes", []), list):
+            return False
+        if "structure_signature" in template and not isinstance(template.get("structure_signature"), str):
+            return False
 
         # Check field types
         if not self._validate_field_types(template):

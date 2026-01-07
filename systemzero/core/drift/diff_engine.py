@@ -18,123 +18,104 @@ class DiffEngine:
     def __init__(self):
         self._compare_properties = {"role", "name", "type", "visible", "enabled", "value"}
     
-    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> List[DriftEvent]:
-        """Generate a diff between two trees.
+    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a structured diff between two trees.
         
-        Args:
-            tree_a: Original tree (baseline)
-            tree_b: New tree (current)
-            
-        Returns:
-            List of DriftEvent objects representing:
-            - Added nodes (change_type="added")
-            - Removed nodes (change_type="removed" or "missing")
-            - Modified nodes (change_type="modified" or "changed")
+        Returns a dict with added/removed/modified lists, unchanged count, and similarity score.
+        This matches expectations in tests and is easier for UIs to consume.
         """
         if not tree_a and not tree_b:
-            return []
-        
-        events = []
-        
+            return {"added": [], "removed": [], "modified": [], "unchanged": 0, "similarity": 1.0}
         if not tree_a:
-            events.append(self._create_drift_event(
-                "added", tree_b, "root", "info"
-            ))
-            return events
-        
+            return {"added": [tree_b], "removed": [], "modified": [], "unchanged": 0, "similarity": 0.0}
         if not tree_b:
-            events.append(self._create_drift_event(
-                "removed", tree_a, "root", "warning"
-            ))
-            return events
-        
-        # Extract roots
+            return {"added": [], "removed": [tree_a], "modified": [], "unchanged": 0, "similarity": 0.0}
+
+        added: List[Any] = []
+        removed: List[Any] = []
+        modified: List[Any] = []
+        unchanged_count = 0
+
         root_a = tree_a.get("root") if isinstance(tree_a, dict) and "root" in tree_a else tree_a
         root_b = tree_b.get("root") if isinstance(tree_b, dict) and "root" in tree_b else tree_b
-        
-        # Compare trees recursively
-        self._diff_nodes(root_a, root_b, events, "root")
-        
-        return events
+
+        self._diff_nodes(root_a, root_b, added, removed, modified, "root", lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None)
+
+        total = len(added) + len(removed) + len(modified) + unchanged_count
+        similarity = 0.0 if total == 0 else max(0.0, min(1.0, (total - len(added) - len(removed) - len(modified)) / total))
+
+        return {
+            "added": added,
+            "removed": removed,
+            "modified": modified,
+            "unchanged": unchanged_count,
+            "similarity": similarity
+        }
     
-    def diff_summary(self, events: List[DriftEvent]) -> str:
-        """Generate a human-readable summary of a diff.
-        
-        Args:
-            events: List of DriftEvent objects from diff()
-            
-        Returns:
-            Human-readable summary string
-        """
-        if not events:
+    def diff_summary(self, result: Dict[str, Any]) -> str:
+        """Generate a human-readable summary from structured diff result."""
+        if not result:
             return "No differences detected"
-        
-        added = [e for e in events if e.change_type in ("added",)]
-        removed = [e for e in events if e.change_type in ("removed", "missing")]
-        modified = [e for e in events if e.change_type in ("modified", "changed")]
-        
+        added = len(result.get("added", []))
+        removed = len(result.get("removed", []))
+        modified = len(result.get("modified", []))
+        unchanged = result.get("unchanged", 0)
+        similarity = result.get("similarity", 0)
         lines = [
-            f"Total changes: {len(events)}",
-            f"Added: {len(added)} nodes",
-            f"Removed: {len(removed)} nodes",
-            f"Modified: {len(modified)} nodes"
+            f"Total changes: {added + removed + modified}",
+            f"Added: {added} nodes",
+            f"Removed: {removed} nodes",
+            f"Modified: {modified} nodes",
+            f"Unchanged: {unchanged}",
+            f"Similarity: {similarity:.2f}"
         ]
         return "\n".join(lines)
     
-    def has_significant_changes(self, events: List[DriftEvent], threshold: int = 5) -> bool:
-        """Determine if diff contains significant changes.
-        
-        Args:
-            events: List of DriftEvent objects from diff()
-            threshold: Number of changes considered significant
-            
-        Returns:
-            True if number of events exceeds threshold
-        """
-        return len(events) >= threshold
+    def has_significant_changes(self, diff_result: Dict[str, Any], threshold: float = 0.9) -> bool:
+        """Determine if changes exceed a similarity threshold (lower similarity = more change)."""
+        similarity = diff_result.get("similarity", 0)
+        return similarity < threshold
     
-    def _diff_nodes(self, node_a: Any, node_b: Any, events: List[DriftEvent], path: str):
-        """Recursively compare nodes."""
+    def _diff_nodes(self, node_a: Any, node_b: Any,
+                    added: List[Any], removed: List[Any], modified: List[Any],
+                    path: str,
+                    *_callbacks):
+        """Recursively compare nodes and collect changes."""
         if not isinstance(node_a, dict) or not isinstance(node_b, dict):
             if node_a != node_b:
                 if node_a:
-                    events.append(self._create_drift_event("removed", node_a, path, "warning"))
+                    removed.append({"path": path, "node": node_a})
                 if node_b:
-                    events.append(self._create_drift_event("added", node_b, path, "info"))
+                    added.append({"path": path, "node": node_b})
             return
-        
-        # Check if nodes are similar (same role/type)
+
         if not self._nodes_similar(node_a, node_b):
-            events.append(self._create_drift_event("removed", node_a, path, "warning"))
-            events.append(self._create_drift_event("added", node_b, path, "info"))
+            removed.append({"path": path, "node": node_a})
+            added.append({"path": path, "node": node_b})
             return
-        
-        # Check for property modifications
+
         if self._properties_changed(node_a, node_b):
             changes = self._get_property_changes(node_a, node_b)
-            events.append(self._create_drift_event("changed", node_b, path, "warning", changes))
+            modified.append({"path": path, "changes": changes, "node": node_b})
         
-        # Compare children
         children_a = node_a.get("children", [])
         children_b = node_b.get("children", [])
-        
-        self._diff_children(children_a, children_b, events, path)
+        self._diff_children(children_a, children_b, added, removed, modified, path)
     
-    def _diff_children(self, children_a: list, children_b: list, events: List[DriftEvent], parent_path: str):
+    def _diff_children(self, children_a: list, children_b: list,
+                       added: List[Any], removed: List[Any], modified: List[Any], parent_path: str):
         """Compare lists of children."""
         max_len = max(len(children_a), len(children_b))
-        
         for i in range(max_len):
             child_a = children_a[i] if i < len(children_a) else None
             child_b = children_b[i] if i < len(children_b) else None
             child_path = f"{parent_path}[{i}]"
-            
-            if child_a is None:
-                events.append(self._create_drift_event("added", child_b, child_path, "info"))
-            elif child_b is None:
-                events.append(self._create_drift_event("missing", child_a, child_path, "warning"))
+            if child_a is None and child_b is not None:
+                added.append({"path": child_path, "node": child_b})
+            elif child_b is None and child_a is not None:
+                removed.append({"path": child_path, "node": child_a})
             else:
-                self._diff_nodes(child_a, child_b, events, child_path)
+                self._diff_nodes(child_a, child_b, added, removed, modified, child_path)
     
     def _nodes_similar(self, node_a: Dict[str, Any], node_b: Dict[str, Any]) -> bool:
         """Check if two nodes are similar enough to compare."""

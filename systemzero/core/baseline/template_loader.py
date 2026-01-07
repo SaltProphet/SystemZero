@@ -41,9 +41,9 @@ class TemplateLoader:
         if not file_path.is_absolute():
             # If caller already passed templates_dir in the path, avoid doubling
             if str(self.templates_dir) in str(file_path):
-                file_path = Path(str(file_path))
+                file_path = Path(str(file_path)).resolve()
             else:
-                file_path = self.templates_dir / file_path
+                file_path = (self.templates_dir / file_path).resolve()
         
         if not file_path.exists():
             raise FileNotFoundError(f"Template not found: {file_path}")
