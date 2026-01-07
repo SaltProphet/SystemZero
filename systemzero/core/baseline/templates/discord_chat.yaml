@@ -3,5 +3,8 @@ required_nodes:
   - message_list
   - input_box
   - send_button
-structure_signature: "TODO_SIGNATURE"
-valid_transitions: []
+structure_signature: "802fd833123203493049da502efefca49861082f800f841fd06c013523ece002"
+full_signature: "269217da79eef449a7137e7d3316d96ef4d918b2be9258207ec59d4ac1ed0ff7"
+valid_transitions:
+  - discord_settings
+  - discord_voice

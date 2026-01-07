@@ -1,0 +1,127 @@
+🧭 System//Zero Build Roadmap
+
+This roadmap outlines the complete build path from scaffold to operational deployment of the System//Zero environment parser. Each phase is modular, deterministic, and designed for GitHub-based development using Copilot, Codex, and CLI tools.
+
+✅ Phase 0: Baseline Confirmation ✓ COMPLETE
+
+[x] Scaffold generated with full folder/file structure (74 files)
+
+[x] CLI entrypoint wired (run.py → interface.cli.main)
+
+[x] YAML baseline templates seeded (discord_chat, doordash_offer, system_default)
+
+[x] Drift engine + logger stubbed (DriftEvent, ImmutableLog, HashChain)
+
+✅ Phase 1: Core Pipeline Implementation ✓ COMPLETE
+
+Goal: Build the ingestion → normalization → matching → logging pipeline
+
+[x] Implement AccessibilityListener and TreeCapture
+
+[x] Normalize UI trees via TreeNormalizer, NodeClassifier, NoiseFilters
+
+[x] Generate layout signatures with SignatureGenerator
+
+[x] Load and validate templates with TemplateLoader and TemplateValidator
+
+[x] Compare trees to baselines using BaselineMatcher, DiffEngine, TransitionChecker
+
+[x] Generate DriftEvent objects
+
+[x] Write to ImmutableLog with EventWriter and HashChain
+
+🛠 Tools: GitHub Copilot, Codex, pytest
+
+🧪 Phase 1.5: Pre-Phase 2 Foundation ✓ COMPLETE
+
+Goal: Create test infrastructure and fixtures for Phase 2 development
+
+[x] Create test fixtures library (mock_trees.py, drift_scenarios.py, templates.py)
+
+[x] Build integration test helpers (tests/helpers.py)
+
+[x] Stub CLI commands for simulate, drift, replay
+
+[x] Complete baseline template gallery with real signatures
+
+[x] Document expected behaviors and test strategy
+
+🛠 Tools: pytest, YAML, Python fixtures
+
+🔁 Phase 2: Mock Pipeline + Test Harness
+
+Goal: Simulate events and validate pipeline behavior
+
+[ ] Create mock UI trees and simulate accessibility events
+
+[ ] Build CLI test harness: sz simulate, sz drift, sz replay
+
+[ ] Validate log output and hash chaining
+
+🛠 Tools: pytest, GitHub Actions, Codex
+
+🧠 Phase 3: Operator Intelligence Layer
+
+Goal: Surface insights and enable situational awareness
+
+[ ] Implement CLI/UI dashboard for live screen state and drift alerts
+
+[ ] Build forensic replay viewer with timeline navigation
+
+[ ] Add cross-app consistency monitor
+
+🛠 Tools: Rich, Textual, GitHub Projects
+
+🧱 Phase 4: Extension + Template Engine
+
+Goal: Capture new screens and build reusable templates
+
+[ ] Implement Recorder and UITreeExport
+
+[ ] Build TemplateBuilder to convert captures into YAML
+
+[ ] Add Validators and Exporters
+
+[ ] Enable versioned template store with rollback
+
+🛠 Tools: YAML, Codex, GitHub versioning
+
+⚙️ Phase 5: Deployment + Operator Tooling
+
+Goal: Make System//Zero usable in the field
+
+[ ] Expand CLI: sz capture, sz baseline, sz export
+
+[ ] Build REST API with FastAPI or Flask
+
+[ ] Run as background service via systemd or pm2
+
+🛠 Tools: FastAPI, GitHub CLI, systemd
+
+🔐 Phase 6: Security + Integrity
+
+Goal: Ensure tamper-evidence and runtime trust
+
+[ ] Implement hash-chain verification for logs
+
+[ ] Sign and validate baseline templates
+
+[ ] Detect environment tampering (e.g. disabled accessibility)
+
+🛠 Tools: Python cryptography, GPG, GitHub Secrets
+
+🚀 Phase 7: Finalization + CI/CD
+
+Goal: Harden, document, and ship
+
+[ ] Full test coverage with pytest
+
+[ ] CI/CD via GitHub Actions
+
+[ ] Operator documentation in docs/
+
+[ ] Public repo prep: README, LICENSE, CONTRIBUTING
+
+[ ] Optional: Dockerfile + deployment script
+
+This roadmap is modular. Each phase can be tracked as a GitHub Project or Issue board. All modules are deterministic and testable in isolation.

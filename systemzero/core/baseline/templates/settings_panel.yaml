@@ -1,0 +1,10 @@
+screen_id: settings_panel
+required_nodes:
+  - general
+  - privacy
+  - notifications
+  - save_button
+structure_signature: "802fd833123203493049da502efefca49861082f800f841fd06c013523ece002"
+full_signature: "06a0cc5eda5e3966a92daf12f7a076bd5afc6e723e06b0fee5c196072846e0bc"
+valid_transitions:
+  - main_screen

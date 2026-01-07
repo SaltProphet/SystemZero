@@ -4,6 +4,8 @@ required_nodes:
   - distance_label
   - accept_button
   - decline_button
-structure_signature: "TODO_SIGNATURE"
+structure_signature: "802fd833123203493049da502efefca49861082f800f841fd06c013523ece002"
+full_signature: "436e71a35f66a4f4ac936ec2001956a018dc80adcbc37f9dc132862ca34981ba"
 valid_transitions:
-  - doordash_offer_card -> doordash_confirmation
+  - doordash_confirmation
+  - doordash_home

@@ -1,0 +1,10 @@
+screen_id: login_form
+required_nodes:
+  - email_input
+  - password_input
+  - login_button
+structure_signature: "802fd833123203493049da502efefca49861082f800f841fd06c013523ece002"
+full_signature: "b87aeacfc7d52000874c3e08163d79578cfc834434382500950c4c7e56bc31d6"
+valid_transitions:
+  - main_screen
+  - signup_form

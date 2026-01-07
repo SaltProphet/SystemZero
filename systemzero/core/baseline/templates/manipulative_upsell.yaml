@@ -1,0 +1,10 @@
+screen_id: manipulative_upsell
+required_nodes:
+  - upsell_text
+  - accept_premium
+  - decline_premium
+structure_signature: "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+full_signature: "f9e8d7c6b5a493827160548372910abcdef123456789fedcba098765432101"
+valid_transitions:
+  - premium_checkout
+  - main_screen

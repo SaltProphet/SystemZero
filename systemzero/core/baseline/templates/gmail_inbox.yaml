@@ -1,0 +1,10 @@
+screen_id: gmail_inbox
+required_nodes:
+  - compose
+  - inbox
+  - message_list
+structure_signature: "802fd833123203493049da502efefca49861082f800f841fd06c013523ece002"
+full_signature: "4fb628b82f961cd0cbf72e589eb6393069dc57e11025232e225f55245c05d8fb"
+valid_transitions:
+  - gmail_compose
+  - gmail_settings
