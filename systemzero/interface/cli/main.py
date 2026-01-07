@@ -6,7 +6,16 @@ from pathlib import Path
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from interface.cli.commands import cmd_simulate, cmd_drift, cmd_replay, cmd_status, cmd_capture
+from interface.cli.commands import (
+    cmd_simulate,
+    cmd_drift,
+    cmd_replay,
+    cmd_status,
+    cmd_capture,
+    cmd_dashboard,
+    cmd_forensic,
+    cmd_consistency,
+)
 
 
 def main():
@@ -46,6 +55,18 @@ def main():
     
     # Capture command (Phase 4)
     capture_parser = subparsers.add_parser('capture', help='Start capture mode (Phase 4)')
+
+    # Dashboard command
+    dashboard_parser = subparsers.add_parser('dashboard', help='Launch live monitoring dashboard')
+    dashboard_parser.add_argument('--log', '-l', help='Log file path (default: logs/systemzero.log)')
+
+    # Forensic viewer command
+    forensic_parser = subparsers.add_parser('forensic', help='Launch forensic drift viewer')
+    forensic_parser.add_argument('--log', '-l', help='Log file path (default: logs/systemzero.log)')
+
+    # Consistency monitor command
+    consistency_parser = subparsers.add_parser('monitor', help='Launch cross-app consistency monitor')
+    consistency_parser.add_argument('--log', '-l', help='Log file path (default: logs/systemzero.log)')
     
     # Parse arguments
     args = parser.parse_args()
@@ -61,6 +82,12 @@ def main():
         cmd_status()
     elif args.command == 'capture':
         cmd_capture()
+    elif args.command == 'dashboard':
+        cmd_dashboard(args.log)
+    elif args.command == 'forensic':
+        cmd_forensic(args.log)
+    elif args.command == 'monitor':
+        cmd_consistency(args.log)
     else:
         parser.print_help()
 

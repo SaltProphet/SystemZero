@@ -53,6 +53,14 @@ class EventWriter:
             else:
                 event_dict = {"data": str(event), "timestamp": time.time()}
             
+            # Enrich with timestamp and entry_id if missing
+            if isinstance(event_dict, dict):
+                if 'timestamp' not in event_dict:
+                    event_dict['timestamp'] = time.time()
+                if 'entry_id' not in event_dict:
+                    # Use a simple incrementing id for this writer instance
+                    event_dict['entry_id'] = f"evt_{self._write_count+1}"
+            
             # Write as JSON line
             json_line = json.dumps(event_dict, separators=(',', ':'))
             self._file_handle.write(json_line + '\n')

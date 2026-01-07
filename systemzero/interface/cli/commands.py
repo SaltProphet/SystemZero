@@ -232,7 +232,7 @@ def cmd_dashboard(log_path: Optional[str] = None) -> None:
     
     display("[bold cyan]Launching Live Dashboard...[/bold cyan]")
     
-    log_file = Path(log_path or "logs/drift.log")
+    log_file = Path(log_path or "logs/systemzero.log")
     render_dashboard(log_file)
 
 
@@ -246,7 +246,7 @@ def cmd_forensic(log_path: Optional[str] = None) -> None:
     
     display("[bold cyan]Launching Forensic Viewer...[/bold cyan]")
     
-    log_file = Path(log_path or "logs/drift.log")
+    log_file = Path(log_path or "logs/systemzero.log")
     render_forensic_viewer(log_file)
 
 
@@ -260,7 +260,7 @@ def cmd_consistency(log_path: Optional[str] = None) -> None:
     
     display("[bold cyan]Launching Consistency Monitor...[/bold cyan]")
     
-    log_file = Path(log_path or "logs/drift.log")
+    log_file = Path(log_path or "logs/systemzero.log")
     render_consistency_monitor(log_file)
 
 

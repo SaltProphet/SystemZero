@@ -104,7 +104,7 @@ class ImmutableLog:
             Entry dict or None if not found
         """
         for entry in self._entries:
-            if entry['hash'] == entry_hash:
+            if entry.get('entry_hash') == entry_hash:
                 return entry
         return None
     
@@ -142,11 +142,16 @@ class ImmutableLog:
                     
                     try:
                         entry = json.loads(line)
-                        self._entries.append(entry)
+                        # Normalize: if raw event dict (no 'data' key), wrap it
+                        if isinstance(entry, dict) and 'data' not in entry:
+                            normalized = {"data": entry}
+                        else:
+                            normalized = entry
+                        self._entries.append(normalized)
                         
                         # Update hash chain state
-                        if 'hash' in entry:
-                            self.hash_chain.current_hash = entry['hash']
+                        if 'entry_hash' in normalized:
+                            self.hash_chain.current_hash = normalized['entry_hash']
                             self.hash_chain._chain_length += 1
                     
                     except json.JSONDecodeError as e:
@@ -158,6 +163,13 @@ class ImmutableLog:
         
         except Exception as e:
             print(f"Error loading log: {e}")
+
+    def read_all(self) -> List[Dict[str, Any]]:
+        """Return all log entries in order.
+        
+        Provided for UI components expecting a simple accessor.
+        """
+        return list(self._entries)
     
     def close(self):
         """Close the log."""
