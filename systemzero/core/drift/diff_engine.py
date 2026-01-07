@@ -1,7 +1,6 @@
 """Generate detailed diffs between UI trees."""
 from typing import Dict, Any, List, Tuple, Set
 import copy
-from .change import Change
 
 
 class DiffEngine:
@@ -18,7 +17,7 @@ class DiffEngine:
     def __init__(self):
         self._compare_properties = {"role", "name", "type", "visible", "enabled"}
     
-    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> List[Change]:
+    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a diff between two trees.
         
         Args:
@@ -26,106 +25,129 @@ class DiffEngine:
             tree_b: New tree (current)
             
         Returns:
-            List of Change objects describing differences
+            Dict containing:
+            - added: List of nodes in tree_b but not tree_a
+            - removed: List of nodes in tree_a but not tree_b
+            - modified: List of nodes with property changes
+            - unchanged: Count of unchanged nodes
+            - similarity: Overall similarity score
         """
         if not tree_a and not tree_b:
-            return []
+            return self._empty_diff()
         
         if not tree_a:
-            return [Change("added", "/", node=tree_b)]
+            return {
+                "added": [tree_b],
+                "removed": [],
+                "modified": [],
+                "unchanged": 0,
+                "similarity": 0.0
+            }
         
         if not tree_b:
-            return [Change("missing", "/", node=tree_a)]
+            return {
+                "added": [],
+                "removed": [tree_a],
+                "modified": [],
+                "unchanged": 0,
+                "similarity": 0.0
+            }
         
-        changes = []
+        added = []
+        removed = []
+        modified = []
+        unchanged_count = 0
         
         # Extract roots
-        root_a = tree_a.get("root") if isinstance(tree_a, dict) else tree_a
-        root_b = tree_b.get("root") if isinstance(tree_b, dict) else tree_b
+        root_a = tree_a.get("root") if isinstance(tree_a, dict) and "root" in tree_a else tree_a
+        root_b = tree_b.get("root") if isinstance(tree_b, dict) and "root" in tree_b else tree_b
         
         # Compare trees recursively
-        self._diff_nodes(root_a, root_b, changes, "/")
+        self._diff_nodes(root_a, root_b, added, removed, modified, [unchanged_count])
         
-        return changes
+        total_nodes = len(added) + len(removed) + len(modified) + unchanged_count
+        similarity = unchanged_count / total_nodes if total_nodes > 0 else 1.0
+        
+        return {
+            "added": added,
+            "removed": removed,
+            "modified": modified,
+            "unchanged": unchanged_count,
+            "similarity": similarity
+        }
     
-    def diff_summary(self, changes: List[Change]) -> str:
-        """Generate a human-readable summary of changes.
-        
-        Args:
-            changes: List of Change objects
-            
-        Returns:
-            Summary string
-        """
-        added = [c for c in changes if c.change_type == "added"]
-        removed = [c for c in changes if c.change_type == "missing"]
-        modified = [c for c in changes if c.change_type == "changed"]
-        
+    def diff_summary(self, diff: Dict[str, Any]) -> str:
+        """Generate a human-readable summary of a diff."""
         lines = [
-            f"Total changes: {len(changes)}",
-            f"Added: {len(added)} nodes",
-            f"Removed: {len(removed)} nodes",
-            f"Modified: {len(modified)} nodes"
+            f"Similarity: {diff['similarity']:.1%}",
+            f"Added: {len(diff['added'])} nodes",
+            f"Removed: {len(diff['removed'])} nodes",
+            f"Modified: {len(diff['modified'])} nodes",
+            f"Unchanged: {diff['unchanged']} nodes"
         ]
         return "\n".join(lines)
     
-    def has_significant_changes(self, changes: List[Change], max_changes: int = 5) -> bool:
-        """Determine if changes are significant.
+    def has_significant_changes(self, diff: Dict[str, Any], threshold: float = 0.9) -> bool:
+        """Determine if diff contains significant changes.
         
         Args:
-            changes: List of Change objects
-            max_changes: Threshold for significance
+            diff: Diff result from diff()
+            threshold: Similarity threshold (below = significant)
             
         Returns:
-            True if number of changes exceeds threshold
+            True if similarity is below threshold
         """
-        return len(changes) >= max_changes
+        return diff.get("similarity", 1.0) < threshold
     
-    def _diff_nodes(self, node_a: Any, node_b: Any, changes: List[Change], path: str):
-        """Recursively compare nodes and collect changes."""
+    def _diff_nodes(self, node_a: Any, node_b: Any, added: list, removed: list, 
+                    modified: list, unchanged: list):
+        """Recursively compare nodes."""
         if not isinstance(node_a, dict) or not isinstance(node_b, dict):
             if node_a != node_b:
-                if node_a and not node_b:
-                    changes.append(Change("missing", path, node=node_a))
-                elif node_b and not node_a:
-                    changes.append(Change("added", path, node=node_b))
-                else:
-                    changes.append(Change("changed", path, old_value=node_a, new_value=node_b))
+                if node_a:
+                    removed.append(node_a)
+                if node_b:
+                    added.append(node_b)
+            else:
+                unchanged[0] += 1
             return
         
         # Check if nodes are similar (same role/type)
         if not self._nodes_similar(node_a, node_b):
-            changes.append(Change("missing", path, node=node_a))
-            changes.append(Change("added", path, node=node_b))
+            removed.append(self._summarize_node(node_a))
+            added.append(self._summarize_node(node_b))
             return
         
         # Check for property modifications
         if self._properties_changed(node_a, node_b):
-            prop_changes = self._get_property_changes(node_a, node_b)
-            for prop, (old_val, new_val) in prop_changes.items():
-                changes.append(Change("changed", f"{path}/{prop}", old_value=old_val, new_value=new_val, node=node_b))
+            modified.append({
+                "node": self._summarize_node(node_b),
+                "changes": self._get_property_changes(node_a, node_b)
+            })
+        else:
+            unchanged[0] += 1
         
         # Compare children
         children_a = node_a.get("children", [])
         children_b = node_b.get("children", [])
         
-        self._diff_children(children_a, children_b, changes, path)
+        self._diff_children(children_a, children_b, added, removed, modified, unchanged)
     
-    def _diff_children(self, children_a: list, children_b: list, changes: List[Change], path: str):
+    def _diff_children(self, children_a: list, children_b: list, added: list, 
+                      removed: list, modified: list, unchanged: list):
         """Compare lists of children."""
         max_len = max(len(children_a), len(children_b))
         
         for i in range(max_len):
             child_a = children_a[i] if i < len(children_a) else None
             child_b = children_b[i] if i < len(children_b) else None
-            child_path = f"{path}/child[{i}]"
             
             if child_a is None:
-                changes.append(Change("added", child_path, node=child_b))
+                added.append(self._summarize_node(child_b))
             elif child_b is None:
-                changes.append(Change("missing", child_path, node=child_a))
+                removed.append(self._summarize_node(child_a))
             else:
-                self._diff_nodes(child_a, child_b, changes, child_path)
+                self._diff_nodes(child_a, child_b, added, removed, modified, unchanged)
     
     def _nodes_similar(self, node_a: Dict[str, Any], node_b: Dict[str, Any]) -> bool:
         """Check if two nodes are similar enough to compare."""
@@ -164,4 +186,13 @@ class DiffEngine:
             "name": node.get("name"),
             "type": node.get("type")
         }
-
+    
+    def _empty_diff(self) -> Dict[str, Any]:
+        """Return an empty diff result."""
+        return {
+            "added": [],
+            "removed": [],
+            "modified": [],
+            "unchanged": 0,
+            "similarity": 1.0
+        }

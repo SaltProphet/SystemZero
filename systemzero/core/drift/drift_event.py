@@ -18,10 +18,13 @@ class DriftEvent:
     - critical: Significant drift or manipulation
     """
     
-    def __init__(self, drift_type: str, severity: str, details: Dict[str, Any]):
+    def __init__(self, drift_type: str, severity: str, details: Dict[str, Any], 
+                 location: Optional[str] = None, change_type: Optional[str] = None):
         self.drift_type = drift_type
         self.severity = severity
         self.details = details
+        self.location = location
+        self.change_type = change_type
         self.timestamp = time.time()
         self.event_id = self._generate_event_id()
     
@@ -33,13 +36,18 @@ class DriftEvent:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for serialization."""
-        return {
+        result = {
             "event_id": self.event_id,
             "drift_type": self.drift_type,
             "severity": self.severity,
             "details": self.details,
             "timestamp": self.timestamp
         }
+        if self.location is not None:
+            result["location"] = self.location
+        if self.change_type is not None:
+            result["change_type"] = self.change_type
+        return result
     
     def __repr__(self) -> str:
         return f"DriftEvent({self.drift_type}, {self.severity}, id={self.event_id})"
