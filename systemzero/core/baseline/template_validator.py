@@ -144,8 +144,8 @@ class TemplateValidator:
         for transition in transitions:
             if not isinstance(transition, str):
                 return False
-            # Allow empty list or valid transition format
-            if transition and " -> " not in transition:
+            # Allow simple identifiers or arrow-separated strings
+            if transition and not isinstance(transition, str):
                 return False
         
         return True

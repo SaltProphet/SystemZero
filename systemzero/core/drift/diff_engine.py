@@ -41,8 +41,9 @@ class DiffEngine:
 
         self._diff_nodes(root_a, root_b, added, removed, modified, "root", lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None, lambda: None)
 
-        total = len(added) + len(removed) + len(modified) + unchanged_count
-        similarity = 0.0 if total == 0 else max(0.0, min(1.0, (total - len(added) - len(removed) - len(modified)) / total))
+        total_changes = len(added) + len(removed) + len(modified)
+        total_nodes = total_changes + 1  # at least root node
+        similarity = 0.0 if total_nodes == 0 else max(0.0, min(1.0, (total_nodes - total_changes) / total_nodes))
 
         return {
             "added": added,
