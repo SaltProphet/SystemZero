@@ -9,6 +9,8 @@ from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 
 from interface.api.auth import verify_api_key, get_key_manager, Role, APIKeyManager
+from core.observability import get_logger, get_metrics, get_health_checker, configure_logging
+from core.observability.middleware import configure_request_logging
 
 from core.accessibility import TreeCapture
 from core.normalization import TreeNormalizer, SignatureGenerator
@@ -18,6 +20,15 @@ from core.logging import ImmutableLog
 from extensions.capture_mode.recorder import Recorder
 from extensions.template_builder.builder import TemplateBuilder
 from extensions.template_builder.exporters import LogExporter
+
+
+# Initialize observability
+logger = get_logger(__name__)
+metrics = get_metrics()
+health_checker = get_health_checker()
+
+# Configure structured logging (JSON in production, standard in dev)
+configure_logging(level="INFO", json_output=False)
 
 
 # Pydantic models for request/response validation
@@ -86,9 +97,12 @@ class TokenResponse(BaseModel):
 # Create FastAPI app
 app = FastAPI(
     title="System//Zero API",
-    description="REST API for environment parser drift detection with authentication",
-    version="0.6.0"
+    description="REST API for environment parser drift detection with authentication and observability",
+    version="0.6.1"
 )
+
+# Configure request logging middleware
+configure_request_logging(app)
 
 
 @app.get("/")
@@ -108,6 +122,20 @@ def root():
             "dashboard": "GET /dashboard"
         }
     }
+
+
+@app.get("/health")
+def health_check() -> Dict[str, Any]:
+    """Health check endpoint with dependency checks."""
+    logger.info("Health check requested")
+    return health_checker.run_checks()
+
+
+@app.get("/metrics")
+def get_metrics_endpoint() -> Dict[str, Any]:
+    """Get metrics data (counters, histograms, gauges)."""
+    logger.info("Metrics requested")
+    return metrics.get_metrics()
 
 
 @app.get("/status", response_model=StatusResponse)
