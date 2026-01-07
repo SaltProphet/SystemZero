@@ -60,12 +60,82 @@ def cmd_baseline(action: str, template_id: Optional[str] = None) -> None:
     # TODO Phase 5: Implement baseline management
 
 
+<<<<<<< Updated upstream
 def cmd_export(log_path: str, output_format: str = "json") -> None:
+=======
+def cmd_export(log_path: Optional[str] = None, output_format: str = "json", output_path: Optional[str] = None) -> None:
+>>>>>>> Stashed changes
     """Export log data to various formats.
     
     Args:
         log_path: Path to log file
         output_format: Output format (json, csv, html)
     """
+<<<<<<< Updated upstream
     print(f"[SZ] export: log={log_path}, format={output_format}")
     # TODO Phase 5: Implement export functionality
+=======
+    from datetime import datetime
+    from extensions.template_builder.exporters import LogExporter
+    from core.logging import ImmutableLog
+
+    if not log_path:
+        log_path = "logs/systemzero.log"
+
+    if not Path(log_path).exists():
+        display(f"[red]Log file not found: {log_path}[/red]")
+        return
+
+    display(f"[bold cyan]Exporting {log_path} to {output_format}...[/bold cyan]")
+
+    # Load log
+    log = ImmutableLog(log_path)
+    entries = log.get_entries()
+
+    if not entries:
+        display("[yellow]Log is empty[/yellow]")
+        return
+
+    # Determine output path
+    if not output_path:
+        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+        ext = output_format if output_format in ["csv", "html"] else "json"
+        output_path = f"logs/export_{timestamp}.{ext}"
+
+    # Export
+    exporter = LogExporter()
+    try:
+        if output_format == "json":
+            exporter.to_json(entries, Path(output_path))
+        elif output_format == "csv":
+            exporter.to_csv(entries, Path(output_path))
+        elif output_format == "html":
+            exporter.to_html(entries, Path(output_path), title=f"Log Export from {log_path}")
+        else:
+            display(f"[red]Unsupported format: {output_format}[/red]")
+            return
+
+        display(f"[green]✓ Exported[/green] → {output_path}")
+        display(f"  entries: {len(entries)}")
+    except Exception as e:
+        display(f"[red]Error: {e}[/red]")
+
+
+def cmd_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False) -> None:
+    """Start FastAPI REST server.
+    
+    Args:
+        host: Server host (default: 0.0.0.0)
+        port: Server port (default: 8000)
+        reload: Auto-reload on code changes (development only)
+    """
+    import uvicorn
+    from interface.api.server import app
+
+    display(f"[bold cyan]Starting System//Zero API server[/bold cyan]")
+    display(f"  Host: {host}")
+    display(f"  Port: {port}")
+    display(f"  Docs: http://{host}:{port}/docs")
+    
+    uvicorn.run(app, host=host, port=port, reload=reload, log_level="info")
+>>>>>>> Stashed changes
