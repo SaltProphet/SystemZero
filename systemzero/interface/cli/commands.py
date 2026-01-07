@@ -222,6 +222,48 @@ def cmd_capture() -> None:
     # TODO Phase 4: Implement capture mode
 
 
+def cmd_dashboard(log_path: Optional[str] = None) -> None:
+    """Launch live monitoring dashboard.
+    
+    Args:
+        log_path: Path to drift log file (default: logs/drift.log)
+    """
+    from interface.ui.dashboard import render_dashboard
+    
+    display("[bold cyan]Launching Live Dashboard...[/bold cyan]")
+    
+    log_file = Path(log_path or "logs/drift.log")
+    render_dashboard(log_file)
+
+
+def cmd_forensic(log_path: Optional[str] = None) -> None:
+    """Launch forensic drift viewer for historical analysis.
+    
+    Args:
+        log_path: Path to drift log file (default: logs/drift.log)
+    """
+    from interface.ui.drift_viewer import render_forensic_viewer
+    
+    display("[bold cyan]Launching Forensic Viewer...[/bold cyan]")
+    
+    log_file = Path(log_path or "logs/drift.log")
+    render_forensic_viewer(log_file)
+
+
+def cmd_consistency(log_path: Optional[str] = None) -> None:
+    """Launch cross-app consistency monitor.
+    
+    Args:
+        log_path: Path to drift log file (default: logs/drift.log)
+    """
+    from interface.ui.log_viewer import render_consistency_monitor
+    
+    display("[bold cyan]Launching Consistency Monitor...[/bold cyan]")
+    
+    log_file = Path(log_path or "logs/drift.log")
+    render_consistency_monitor(log_file)
+
+
 def cmd_baseline(action: str, template_id: Optional[str] = None) -> None:
     """Manage baseline templates.
     
