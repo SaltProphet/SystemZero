@@ -1,4 +1,3 @@
-# SystemZero**Here’s a README draft for System//Zero based strictly on the current ROADMAP and repo structure. It reflects the actual state of the project, its phase-based development, and the intended operator-facing functionality. No fluff, no overreach.**
 
 ---
 
@@ -80,4 +79,3 @@ This protocol is for personal use only. Redistribution or repackaging without co
 
 ---
 
-Let me know if you want this version committed, split into sections, or extended into a CONTRIBUTING or INSTALL doc.
