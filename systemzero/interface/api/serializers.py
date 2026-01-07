@@ -1,0 +1,2 @@
+# placeholder
+class Serializer: pass

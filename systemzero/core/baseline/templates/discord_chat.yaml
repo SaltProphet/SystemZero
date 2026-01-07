@@ -1,0 +1,7 @@
+screen_id: discord_chat
+required_nodes:
+  - message_list
+  - input_box
+  - send_button
+structure_signature: "TODO_SIGNATURE"
+valid_transitions: []

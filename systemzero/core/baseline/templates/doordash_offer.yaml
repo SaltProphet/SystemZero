@@ -1,0 +1,9 @@
+screen_id: doordash_offer_card
+required_nodes:
+  - payout_label
+  - distance_label
+  - accept_button
+  - decline_button
+structure_signature: "TODO_SIGNATURE"
+valid_transitions:
+  - doordash_offer_card -> doordash_confirmation

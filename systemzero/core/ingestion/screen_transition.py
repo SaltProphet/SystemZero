@@ -1,0 +1,3 @@
+# placeholder
+class ScreenTransition:
+    pass

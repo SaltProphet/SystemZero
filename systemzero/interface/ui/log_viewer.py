@@ -1,0 +1,2 @@
+# placeholder
+class LogViewer: pass
