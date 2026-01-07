@@ -59,6 +59,18 @@ class Matcher:
         weighted_sum = sum(score * weight for score, weight in scores)
         return weighted_sum
     
+    def calculate_score(self, tree: Dict[str, Any], template: Dict[str, Any]) -> float:
+        """Alias for similarity_score for backward compatibility.
+        
+        Args:
+            tree: Normalized UI tree
+            template: Baseline template
+            
+        Returns:
+            Similarity score from 0.0 to 1.0
+        """
+        return self.similarity_score(tree, template)
+    
     def find_best_match(self, tree: Dict[str, Any], templates: List[Dict[str, Any]]) -> Optional[Tuple[Dict[str, Any], float]]:
         """Find the best matching template for a tree.
         

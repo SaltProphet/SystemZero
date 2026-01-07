@@ -1,6 +1,7 @@
 """Generate detailed diffs between UI trees."""
 from typing import Dict, Any, List, Tuple, Set
 import copy
+from .change import Change
 
 
 class DiffEngine:
@@ -17,7 +18,7 @@ class DiffEngine:
     def __init__(self):
         self._compare_properties = {"role", "name", "type", "visible", "enabled"}
     
-    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> Dict[str, Any]:
+    def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> List[Change]:
         """Generate a diff between two trees.
         
         Args:
@@ -25,56 +26,27 @@ class DiffEngine:
             tree_b: New tree (current)
             
         Returns:
-            Dict containing:
-            - added: List of nodes in tree_b but not tree_a
-            - removed: List of nodes in tree_a but not tree_b
-            - modified: List of nodes with property changes
-            - unchanged: Count of unchanged nodes
-            - similarity: Overall similarity score
+            List of Change objects describing differences
         """
         if not tree_a and not tree_b:
-            return self._empty_diff()
+            return []
         
         if not tree_a:
-            return {
-                "added": [tree_b],
-                "removed": [],
-                "modified": [],
-                "unchanged": 0,
-                "similarity": 0.0
-            }
+            return [Change("added", "/", node=tree_b)]
         
         if not tree_b:
-            return {
-                "added": [],
-                "removed": [tree_a],
-                "modified": [],
-                "unchanged": 0,
-                "similarity": 0.0
-            }
+            return [Change("missing", "/", node=tree_a)]
         
-        added = []
-        removed = []
-        modified = []
-        unchanged_count = 0
+        changes = []
         
         # Extract roots
         root_a = tree_a.get("root") if isinstance(tree_a, dict) else tree_a
         root_b = tree_b.get("root") if isinstance(tree_b, dict) else tree_b
         
         # Compare trees recursively
-        self._diff_nodes(root_a, root_b, added, removed, modified, [unchanged_count])
+        self._diff_nodes(root_a, root_b, changes, "/")
         
-        total_nodes = len(added) + len(removed) + len(modified) + unchanged_count
-        similarity = unchanged_count / total_nodes if total_nodes > 0 else 1.0
-        
-        return {
-            "added": added,
-            "removed": removed,
-            "modified": modified,
-            "unchanged": unchanged_count,
-            "similarity": similarity
-        }
+        return changes
     
     def diff_summary(self, diff: Dict[str, Any]) -> str:
         """Generate a human-readable summary of a diff."""
