@@ -160,17 +160,21 @@ Goal: Surface insights and enable situational awareness
 
 **Prerequisites**: ✅ All blockers removed, 72% test coverage, core pipeline stable
 
-[ ] Implement CLI/UI dashboard for live screen state and drift alerts
+✅ Implement CLI/UI dashboard for live screen state and drift alerts
 
-[ ] Build forensic replay viewer with timeline navigation
+✅ Build forensic replay viewer with timeline navigation (filters, paging, export, diff summary)
 
-[ ] Add cross-app consistency monitor
+✅ Add cross-app consistency monitor (compliance metrics, alerts, trends)
 
-[ ] Optional: Address remaining Priority 2 enhancements (Matcher.calculate_score, DiffEngine structure)
+ℹ️ Optional: Address remaining Priority 2 enhancements (Matcher.calculate_score, DiffEngine structure)
 
 🛠 Tools: Rich, Textual, GitHub Projects
 
-**Readiness**: 80% - Core infrastructure stable, minor enhancements recommended but not blocking
+**Status**: COMPLETE – Operator UIs shipped; 98/98 tests passing; defaults to logs/systemzero.log (widgets also accept logs/drift.log)
+
+**Next actions**
+- Fold any remaining Priority 2 enhancements into Phase 4 backlog
+- Socialize operator workflows and capture user feedback
 
 🧱 Phase 4: Extension + Template Engine
 

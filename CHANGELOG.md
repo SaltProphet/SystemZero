@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 3] - 2026-01-07 - Operator Intelligence Layer ✓ COMPLETE
+
+### Summary
+Delivered operator-facing Textual UIs (dashboard, forensic viewer, consistency monitor), wired CLI launch commands, and achieved full test pass (98/98). Drift insights now surface in real time with paging, filtering, export, and diff summaries backed by immutable logs.
+
+### Highlights
+- Live dashboard (`run.py dashboard`): auto-refresh drift feed, severity coloring, status heartbeat
+- Forensic viewer (`run.py forensic`): timeline pagination, type/severity filters, JSON detail view, export, on-demand diff summaries
+- Consistency monitor (`run.py consistency`): cross-app compliance metrics, alert panel, trend summary, template-aware counts
+- CLI enhancements: dashboard/forensic/consistency subcommands; replay and drift viewers default to `logs/systemzero.log`
+- Logging and diffing: structured diff summaries surfaced in UI; hash-chain integrity reused across viewers
+- Quality: all tests passing (98/98); UIs load gracefully if logs are absent
+
+### Notes
+- Default log path for UI/CLI: `logs/systemzero.log` (widgets also accept `logs/drift.log`)
+- Phase 4 will build capture and template tooling on top of these operator surfaces
+
 ## [Phase 2.5] - 2026-01-07 - Testing Strategy Hardening ✓ COMPLETE
 
 ### Summary
