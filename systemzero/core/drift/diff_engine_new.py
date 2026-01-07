@@ -16,7 +16,7 @@ class DiffEngine:
     """
     
     def __init__(self):
-        self._compare_properties = {"role", "name", "type", "visible", "enabled", "value"}
+        self._compare_properties = {"role", "name", "type", "visible", "enabled"}
     
     def diff(self, tree_a: Dict[str, Any], tree_b: Dict[str, Any]) -> List[DriftEvent]:
         """Generate a diff between two trees.
@@ -112,7 +112,7 @@ class DiffEngine:
         # Check for property modifications
         if self._properties_changed(node_a, node_b):
             changes = self._get_property_changes(node_a, node_b)
-            events.append(self._create_drift_event("changed", node_b, path, "warning", changes))
+            events.append(self._create_drift_event("modified", node_b, path, "warning", changes))
         
         # Compare children
         children_a = node_a.get("children", [])
@@ -122,6 +122,7 @@ class DiffEngine:
     
     def _diff_children(self, children_a: list, children_b: list, events: List[DriftEvent], parent_path: str):
         """Compare lists of children."""
+        # Simple approach: match by position and similarity
         max_len = max(len(children_a), len(children_b))
         
         for i in range(max_len):
@@ -132,7 +133,7 @@ class DiffEngine:
             if child_a is None:
                 events.append(self._create_drift_event("added", child_b, child_path, "info"))
             elif child_b is None:
-                events.append(self._create_drift_event("missing", child_a, child_path, "warning"))
+                events.append(self._create_drift_event("removed", child_a, child_path, "warning"))
             else:
                 self._diff_nodes(child_a, child_b, events, child_path)
     
