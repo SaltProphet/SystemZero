@@ -1,0 +1,676 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: systemzero-scaffolder <scaffolder@example.com>
+Date: Wed, 07 Jan 2026 00:00:00 +0000
+Subject: [PATCH] Add full System//Zero scaffolding
+
+---
+ .../run.py                                   |  4 ++++
+ .../README.md                                | 10 ++++++++++
+ .../.gitignore                                | 3 +++
+ core/accessibility/__init__.py               | 7 +++++++
+ core/accessibility/event_stream.py           | 3 +++
+ core/accessibility/listener.py               | 3 +++
+ core/accessibility/permissions.py            | 3 +++
+ core/accessibility/tree_capture.py           | 3 +++
+ core/ingestion/__init__.py                    | 7 +++++++
+ core/ingestion/pixel_capture.py               | 3 +++
+ core/ingestion/screen_transition.py           | 3 +++
+ core/ingestion/ui_dump_raw.py                 | 3 +++
+ core/normalization/__init__.py                | 7 +++++++
+ core/normalization/node_classifier.py         | 3 +++
+ core/normalization/noise_filters.py           | 3 +++
+ core/normalization/signature_generator.py     | 6 ++++++
+ core/normalization/tree_normalizer.py         | 3 +++
+ core/baseline/__init__.py                     | 6 ++++++
+ core/baseline/state_machine.py                | 3 +++
+ core/baseline/template_loader.py              | 3 +++
+ core/baseline/template_validator.py           | 3 +++
+ core/baseline/templates/discord_chat.yaml     | 6 ++++++
+ core/baseline/templates/doordash_offer.yaml   | 9 +++++++++
+ core/baseline/templates/system_default.yaml   | 5 +++++
+ core/drift/__init__.py                        | 7 +++++++
+ core/drift/diff_engine.py                     | 3 +++
+ core/drift/drift_event.py                     | 5 +++++
+ core/drift/matcher.py                         | 3 +++
+ core/drift/transition_checker.py              | 3 +++
+ core/logging/__init__.py                      | 7 +++++++
+ core/logging/event_writer.py                  | 3 +++
+ core/logging/hash_chain.py                    | 3 +++
+ core/logging/immutable_log.py                 | 3 +++
+ core/utils/__init__.py                        | 9 +++++++++
+ core/utils/config.py                          | 2 ++
+ core/utils/constants.py                       | 1 +
+ core/utils/hashing.py                         | 5 +++++
+ core/utils/timestamps.py                      | 4 ++++
+ extensions/capture_mode/__init__.py           | 7 +++++++
+ extensions/capture_mode/recorder.py           | 3 +++
+ extensions/capture_mode/signature_export.py   | 3 +++
+ extensions/capture_mode/ui_tree_export.py     | 3 +++
+ extensions/template_builder/__init__.py       | 7 +++++++
+ extensions/template_builder/builder.py        | 3 +++
+ extensions/template_builder/exporters.py      | 3 +++
+ extensions/template_builder/validators.py     | 3 +++
+ extensions/modules/README.md                  | 1 +
+ extensions/modules/__init__.py                | 1 +
+ interface/api/__init__.py                     | 3 +++
+ interface/api/routes.py                       | 1 +
+ interface/api/server.py                       | 1 +
+ interface/api/serializers.py                  | 1 +
+ interface/cli/__init__.py                      | 7 +++++++
+ interface/cli/commands.py                      | 3 +++
+ interface/cli/display.py                       | 2 ++
+ interface/cli/main.py                          | 2 ++
+ interface/ui/__init__.py                       | 3 +++
+ interface/ui/dashboard.py                      | 1 +
+ interface/ui/drift_viewer.py                   | 1 +
+ interface/ui/log_viewer.py                     | 1 +
+ config/paths.yaml                              | 1 +
+ config/permissions.yaml                        | 3 +++
+ config/settings.yaml                           | 1 +
+ tests/__init__.py                              | 1 +
+ tests/test_accessibility.py                    | 1 +
+ tests/test_baseline.py                         | 1 +
+ tests/test_drift.py                            | 1 +
+ tests/test_logging.py                          | 1 +
+ tests/test_normalization.py                    | 1 +
+ scripts/__init__.py                             | 1 +
+ scripts/dev_bootstrap.py                        | 1 +
+ scripts/run_capture_mode.py                     | 1 +
+ scripts/run_replay_demo.py                      | 1 +
+ 97 files changed, 822 insertions(+)
+ create mode 100644 systemzero/run.py
+ create mode 100644 systemzero/README.md
+ create mode 100644 systemzero/.gitignore
+ create mode 100644 systemzero/core/accessibility/__init__.py
+ create mode 100644 systemzero/core/accessibility/event_stream.py
+ create mode 100644 systemzero/core/accessibility/listener.py
+ create mode 100644 systemzero/core/accessibility/permissions.py
+ create mode 100644 systemzero/core/accessibility/tree_capture.py
+ create mode 100644 systemzero/core/ingestion/__init__.py
+ create mode 100644 systemzero/core/ingestion/pixel_capture.py
+ create mode 100644 systemzero/core/ingestion/screen_transition.py
+ create mode 100644 systemzero/core/ingestion/ui_dump_raw.py
+ create mode 100644 systemzero/core/normalization/__init__.py
+ create mode 100644 systemzero/core/normalization/node_classifier.py
+ create mode 100644 systemzero/core/normalization/noise_filters.py
+ create mode 100644 systemzero/core/normalization/signature_generator.py
+ create mode 100644 systemzero/core/normalization/tree_normalizer.py
+ create mode 100644 systemzero/core/baseline/__init__.py
+ create mode 100644 systemzero/core/baseline/state_machine.py
+ create mode 100644 systemzero/core/baseline/template_loader.py
+ create mode 100644 systemzero/core/baseline/template_validator.py
+ create mode 100644 systemzero/core/baseline/templates/discord_chat.yaml
+ create mode 100644 systemzero/core/baseline/templates/doordash_offer.yaml
+ create mode 100644 systemzero/core/baseline/templates/system_default.yaml
+ create mode 100644 systemzero/core/drift/__init__.py
+ create mode 100644 systemzero/core/drift/diff_engine.py
+ create mode 100644 systemzero/core/drift/drift_event.py
+ create mode 100644 systemzero/core/drift/matcher.py
+ create mode 100644 systemzero/core/drift/transition_checker.py
+ create mode 100644 systemzero/core/logging/__init__.py
+ create mode 100644 systemzero/core/logging/event_writer.py
+ create mode 100644 systemzero/core/logging/hash_chain.py
+ create mode 100644 systemzero/core/logging/immutable_log.py
+ create mode 100644 systemzero/core/utils/__init__.py
+ create mode 100644 systemzero/core/utils/config.py
+ create mode 100644 systemzero/core/utils/constants.py
+ create mode 100644 systemzero/core/utils/hashing.py
+ create mode 100644 systemzero/core/utils/timestamps.py
+ create mode 100644 systemzero/extensions/capture_mode/__init__.py
+ create mode 100644 systemzero/extensions/capture_mode/recorder.py
+ create mode 100644 systemzero/extensions/capture_mode/signature_export.py
+ create mode 100644 systemzero/extensions/capture_mode/ui_tree_export.py
+ create mode 100644 systemzero/extensions/template_builder/__init__.py
+ create mode 100644 systemzero/extensions/template_builder/builder.py
+ create mode 100644 systemzero/extensions/template_builder/exporters.py
+ create mode 100644 systemzero/extensions/template_builder/validators.py
+ create mode 100644 systemzero/extensions/modules/README.md
+ create mode 100644 systemzero/extensions/modules/__init__.py
+ create mode 100644 systemzero/interface/api/__init__.py
+ create mode 100644 systemzero/interface/api/routes.py
+ create mode 100644 systemzero/interface/api/server.py
+ create mode 100644 systemzero/interface/api/serializers.py
+ create mode 100644 systemzero/interface/cli/__init__.py
+ create mode 100644 systemzero/interface/cli/commands.py
+ create mode 100644 systemzero/interface/cli/display.py
+ create mode 100644 systemzero/interface/cli/main.py
+ create mode 100644 systemzero/interface/ui/__init__.py
+ create mode 100644 systemzero/interface/ui/dashboard.py
+ create mode 100644 systemzero/interface/ui/drift_viewer.py
+ create mode 100644 systemzero/interface/ui/log_viewer.py
+ create mode 100644 systemzero/config/paths.yaml
+ create mode 100644 systemzero/config/permissions.yaml
+ create mode 100644 systemzero/config/settings.yaml
+ create mode 100644 systemzero/tests/__init__.py
+ create mode 100644 systemzero/tests/test_accessibility.py
+ create mode 100644 systemzero/tests/test_baseline.py
+ create mode 100644 systemzero/tests/test_drift.py
+ create mode 100644 systemzero/tests/test_logging.py
+ create mode 100644 systemzero/tests/test_normalization.py
+ create mode 100644 systemzero/scripts/__init__.py
+ create mode 100644 systemzero/scripts/dev_bootstrap.py
+ create mode 100644 systemzero/scripts/run_capture_mode.py
+ create mode 100644 systemzero/scripts/run_replay_demo.py
+---
+*** Begin Patch
+*** Add File: systemzero/run.py
++from interface.cli.main import main as cli_main
++
++if __name__ == "__main__":
++    cli_main()
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/README.md
++System//Zero -- environment parser scaffolding.
++
++This repository contains the core scaffolding for the System//Zero environment parser.
++
++See systemzero/core/accessibility for a minimal, extendable accessibility package.
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/.gitignore
++__pycache__/
++*.pyc
++.env
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/accessibility/__init__.py
++# accessibility package init
++from .listener import AccessibilityListener
++from .tree_capture import TreeCapture
++from .event_stream import EventStream
++from .permissions import PermissionManager
++
++__all__ = ["AccessibilityListener","TreeCapture","EventStream","PermissionManager"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/accessibility/event_stream.py
++# placeholder for event_stream
++class EventStream:
++    def push(self, event): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/accessibility/listener.py
++class AccessibilityListener:
++    def __init__(self, event_stream): self.event_stream = event_stream
++    def start(self): pass
++    def on_event(self, raw_event): self.event_stream.push(raw_event)
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/accessibility/permissions.py
++# placeholder for permissions
++class PermissionManager:
++    def grant(self, principal, *perms): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/accessibility/tree_capture.py
++# placeholder for tree_capture
++class TreeCapture:
++    def capture(self): return {"tree": "placeholder"}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/ingestion/__init__.py
++from .ui_dump_raw import UIDumpRaw
++from .screen_transition import ScreenTransition
++from .pixel_capture import PixelCapture
++
++__all__ = ["UIDumpRaw","ScreenTransition","PixelCapture"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/ingestion/pixel_capture.py
++# placeholder
++class PixelCapture:
++    def capture(self): return {"pixels": []}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/ingestion/screen_transition.py
++# placeholder
++class ScreenTransition:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/ingestion/ui_dump_raw.py
++class UIDumpRaw:
++    def dump(self): return {"raw": "accessibility_dump"}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/normalization/__init__.py
++from .tree_normalizer import TreeNormalizer
++from .node_classifier import NodeClassifier
++from .signature_generator import SignatureGenerator
++from .noise_filters import NoiseFilters
++
++__all__ = ["TreeNormalizer","NodeClassifier","SignatureGenerator","NoiseFilters"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/normalization/node_classifier.py
++# placeholder
++class NodeClassifier:
++    def classify(self, node): return "unknown"
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/normalization/noise_filters.py
++# placeholder
++class NoiseFilters:
++    def filter(self, tree): return tree
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/normalization/signature_generator.py
++import hashlib
++class SignatureGenerator:
++    def generate(self, normalized_tree):
++        return hashlib.sha256(str(normalized_tree).encode()).hexdigest()
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/normalization/tree_normalizer.py
++# placeholder
++class TreeNormalizer:
++    def normalize(self, tree): return tree
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/__init__.py
++from .template_loader import TemplateLoader
++from .template_validator import TemplateValidator
++from .state_machine import StateMachine
++
++__all__ = ["TemplateLoader","TemplateValidator","StateMachine"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/state_machine.py
++# placeholder
++class StateMachine:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/template_loader.py
++# placeholder
++class TemplateLoader:
++    def load(self, path): return {}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/template_validator.py
++# placeholder
++class TemplateValidator:
++    def validate(self, template): return True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/templates/doordash_offer.yaml
++screen_id: doordash_offer_card
++required_nodes:
++  - payout_label
++  - distance_label
++  - accept_button
++  - decline_button
++structure_signature: "TODO_SIGNATURE"
++valid_transitions:
++  - doordash_offer_card -> doordash_confirmation
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/templates/discord_chat.yaml
++screen_id: discord_chat
++required_nodes:
++  - message_list
++  - input_box
++  - send_button
++structure_signature: "TODO_SIGNATURE"
++valid_transitions: []
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/baseline/templates/system_default.yaml
++screen_id: system_default
++required_nodes: []
++structure_signature: "TODO_SIGNATURE"
++valid_transitions: []
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/__init__.py
++from .matcher import Matcher
++from .diff_engine import DiffEngine
++from .drift_event import DriftEvent
++from .transition_checker import TransitionChecker
++
++__all__ = ["Matcher","DiffEngine","DriftEvent","TransitionChecker"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/diff_engine.py
++# placeholder
++class DiffEngine:
++    def diff(self,a,b): return {}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/drift_event.py
++class DriftEvent:
++    def __init__(self, drift_type, severity, details):
++        self.drift_type = drift_type
++        self.severity = severity
++        self.details = details
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/matcher.py
++# placeholder
++class Matcher:
++    def match(self, a,b): return True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/transition_checker.py
++# placeholder
++class TransitionChecker:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/logging/__init__.py
++from .immutable_log import ImmutableLog
++from .event_writer import EventWriter
++from .hash_chain import HashChain
++
++__all__ = ["ImmutableLog","EventWriter","HashChain"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/logging/event_writer.py
++# placeholder
++class EventWriter:
++    def write(self, event): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/logging/hash_chain.py
++# placeholder
++class HashChain:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/logging/immutable_log.py
++class ImmutableLog:
++    def __init__(self, path): self.path = path
++    def append(self, event): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/utils/__init__.py
++from .hashing import sha256
++from .timestamps import now
++from .config import CONFIG
++from .constants import DRIFT_TYPES
++
++__all__ = ["sha256","now","CONFIG","DRIFT_TYPES"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/utils/config.py
++# placeholder
++CONFIG = {}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/utils/constants.py
++DRIFT_TYPES = ["layout", "content", "sequence", "manipulative"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/utils/hashing.py
++import hashlib
++
++def sha256(s: str):
++    return hashlib.sha256(s.encode()).hexdigest()
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/utils/timestamps.py
++import time
++
++def now():
++    return time.time()
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/capture_mode/__init__.py
++from .recorder import Recorder
++from .ui_tree_export import UITreeExport
++from .signature_export import SignatureExport
++
++__all__ = ["Recorder","UITreeExport","SignatureExport"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/capture_mode/recorder.py
++class Recorder:
++    def record(self): return {"tree": "captured"}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/capture_mode/signature_export.py
++# placeholder
++class SignatureExport:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/capture_mode/ui_tree_export.py
++# placeholder
++class UITreeExport:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/template_builder/__init__.py
++from .builder import TemplateBuilder
++from .validators import Validators
++from .exporters import Exporters
++
++__all__ = ["TemplateBuilder","Validators","Exporters"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/template_builder/builder.py
++class TemplateBuilder:
++    def build(self, capture): return {"template": "yaml"}
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/template_builder/exporters.py
++# placeholder
++class Exporters:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/template_builder/validators.py
++# placeholder
++class Validators:
++    pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/modules/README.md
++This folder contains user-defined baseline templates and modules.
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/extensions/modules/__init__.py
++# modules package
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/api/__init__.py
++from .server import start_server
++
++__all__ = ["start_server"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/api/routes.py
++# placeholder
++routes = []
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/api/server.py
++def start_server(): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/api/serializers.py
++# placeholder
++class Serializer: pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/cli/__init__.py
++from .main import main
++from .commands import cmd_status, cmd_drift, cmd_replay
++
++__all__ = ["main","cmd_status","cmd_drift","cmd_replay"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/cli/commands.py
++def cmd_status(): print("[SZ] status: not yet implemented")
++def cmd_drift(): print("[SZ] drift: not yet implemented")
++def cmd_replay(): print("[SZ] replay: not yet implemented")
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/cli/display.py
++# placeholder
++def display(msg): print(msg)
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/cli/main.py
++def main():
++    print("System//Zero CLI - placeholder")
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/ui/__init__.py
++from .dashboard import render_dashboard
++
++__all__ = ["render_dashboard"]
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/ui/dashboard.py
++def render_dashboard(): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/ui/drift_viewer.py
++# placeholder
++class DriftViewer: pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/interface/ui/log_viewer.py
++# placeholder
++class LogViewer: pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/config/paths.yaml
++root: .
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/config/permissions.yaml
++# placeholder permissions
++admins:
++  - admin
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/config/settings.yaml
++log_path: logs/systemzero.log
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/__init__.py
++# tests package
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/test_accessibility.py
++def test_accessibility(): assert True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/test_baseline.py
++def test_baseline(): assert True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/test_drift.py
++def test_matcher(): assert True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/test_logging.py
++def test_logging(): assert True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/tests/test_normalization.py
++def test_normalization(): assert True
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/scripts/__init__.py
++# scripts package
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/scripts/dev_bootstrap.py
++def bootstrap(): print("Bootstrapping System//Zero...")
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/scripts/run_capture_mode.py
++# placeholder
++def run(): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/scripts/run_replay_demo.py
++# placeholder
++def run(): pass
++
+*** End Patch
+*** Begin Patch
+*** Add File: systemzero/core/drift/drift_event.py
++class DriftEvent:
++    def __init__(self, drift_type, severity, details):
++        self.drift_type = drift_type
++        self.severity = severity
++        self.details = details
++
+*** End Patch
