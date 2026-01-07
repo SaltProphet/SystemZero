@@ -48,79 +48,84 @@ class DiffEngine:
         
         return changes
     
-    def diff_summary(self, diff: Dict[str, Any]) -> str:
-        """Generate a human-readable summary of a diff."""
+    def diff_summary(self, changes: List[Change]) -> str:
+        """Generate a human-readable summary of changes.
+        
+        Args:
+            changes: List of Change objects
+            
+        Returns:
+            Summary string
+        """
+        added = [c for c in changes if c.change_type == "added"]
+        removed = [c for c in changes if c.change_type == "missing"]
+        modified = [c for c in changes if c.change_type == "changed"]
+        
         lines = [
-            f"Similarity: {diff['similarity']:.1%}",
-            f"Added: {len(diff['added'])} nodes",
-            f"Removed: {len(diff['removed'])} nodes",
-            f"Modified: {len(diff['modified'])} nodes",
-            f"Unchanged: {diff['unchanged']} nodes"
+            f"Total changes: {len(changes)}",
+            f"Added: {len(added)} nodes",
+            f"Removed: {len(removed)} nodes",
+            f"Modified: {len(modified)} nodes"
         ]
         return "\n".join(lines)
     
-    def has_significant_changes(self, diff: Dict[str, Any], threshold: float = 0.9) -> bool:
-        """Determine if diff contains significant changes.
+    def has_significant_changes(self, changes: List[Change], max_changes: int = 5) -> bool:
+        """Determine if changes are significant.
         
         Args:
-            diff: Diff result from diff()
-            threshold: Similarity threshold (below = significant)
+            changes: List of Change objects
+            max_changes: Threshold for significance
             
         Returns:
-            True if similarity is below threshold
+            True if number of changes exceeds threshold
         """
-        return diff.get("similarity", 1.0) < threshold
+        return len(changes) >= max_changes
     
-    def _diff_nodes(self, node_a: Any, node_b: Any, added: list, removed: list, 
-                    modified: list, unchanged: list):
-        """Recursively compare nodes."""
+    def _diff_nodes(self, node_a: Any, node_b: Any, changes: List[Change], path: str):
+        """Recursively compare nodes and collect changes."""
         if not isinstance(node_a, dict) or not isinstance(node_b, dict):
             if node_a != node_b:
-                if node_a:
-                    removed.append(node_a)
-                if node_b:
-                    added.append(node_b)
-            else:
-                unchanged[0] += 1
+                if node_a and not node_b:
+                    changes.append(Change("missing", path, node=node_a))
+                elif node_b and not node_a:
+                    changes.append(Change("added", path, node=node_b))
+                else:
+                    changes.append(Change("changed", path, old_value=node_a, new_value=node_b))
             return
         
         # Check if nodes are similar (same role/type)
         if not self._nodes_similar(node_a, node_b):
-            removed.append(self._summarize_node(node_a))
-            added.append(self._summarize_node(node_b))
+            changes.append(Change("missing", path, node=node_a))
+            changes.append(Change("added", path, node=node_b))
             return
         
         # Check for property modifications
         if self._properties_changed(node_a, node_b):
-            modified.append({
-                "node": self._summarize_node(node_b),
-                "changes": self._get_property_changes(node_a, node_b)
-            })
-        else:
-            unchanged[0] += 1
+            prop_changes = self._get_property_changes(node_a, node_b)
+            for prop, (old_val, new_val) in prop_changes.items():
+                changes.append(Change("changed", f"{path}/{prop}", old_value=old_val, new_value=new_val, node=node_b))
         
         # Compare children
         children_a = node_a.get("children", [])
         children_b = node_b.get("children", [])
         
-        self._diff_children(children_a, children_b, added, removed, modified, unchanged)
+        self._diff_children(children_a, children_b, changes, path)
     
-    def _diff_children(self, children_a: list, children_b: list, added: list, 
-                      removed: list, modified: list, unchanged: list):
+    def _diff_children(self, children_a: list, children_b: list, changes: List[Change], path: str):
         """Compare lists of children."""
-        # Simple approach: match by position and similarity
         max_len = max(len(children_a), len(children_b))
         
         for i in range(max_len):
             child_a = children_a[i] if i < len(children_a) else None
             child_b = children_b[i] if i < len(children_b) else None
+            child_path = f"{path}/child[{i}]"
             
             if child_a is None:
-                added.append(self._summarize_node(child_b))
+                changes.append(Change("added", child_path, node=child_b))
             elif child_b is None:
-                removed.append(self._summarize_node(child_a))
+                changes.append(Change("missing", child_path, node=child_a))
             else:
-                self._diff_nodes(child_a, child_b, added, removed, modified, unchanged)
+                self._diff_nodes(child_a, child_b, changes, child_path)
     
     def _nodes_similar(self, node_a: Dict[str, Any], node_b: Dict[str, Any]) -> bool:
         """Check if two nodes are similar enough to compare."""
@@ -159,13 +164,4 @@ class DiffEngine:
             "name": node.get("name"),
             "type": node.get("type")
         }
-    
-    def _empty_diff(self) -> Dict[str, Any]:
-        """Return an empty diff result."""
-        return {
-            "added": [],
-            "removed": [],
-            "modified": [],
-            "unchanged": 0,
-            "similarity": 1.0
-        }
+

@@ -17,7 +17,7 @@ class NodeClassifier:
     def __init__(self):
         self._interactive_roles: Set[str] = {
             "button", "link", "menuitem", "tab", "checkbox",
-            "radio", "switch", "slider"
+            "radio", "switch", "slider", "textbox"
         }
         self._content_roles: Set[str] = {
             "text", "label", "heading", "paragraph",
@@ -25,16 +25,18 @@ class NodeClassifier:
         }
         self._container_roles: Set[str] = {
             "window", "pane", "panel", "group",
-            "container", "scroll_pane", "splitpane"
+            "container", "scroll_pane", "splitpane", "frame"
         }
         self._navigation_roles: Set[str] = {
             "menu", "menubar", "toolbar", "tablist",
             "navigation", "tree"
         }
         self._input_roles: Set[str] = {
-            "text_field", "textbox", "textarea", "combobox",
+            "text_field", "textarea", "combobox",
             "spinbutton", "searchbox"
         }
+        # Map for backward compatibility
+        self._static_roles: Set[str] = self._content_roles
     
     def classify(self, node: Dict[str, Any]) -> str:
         """Classify a UI node into a semantic category.
@@ -55,8 +57,8 @@ class NodeClassifier:
         # Check role-based classification first
         if role in self._interactive_roles:
             return "interactive"
-        if role in self._content_roles:
-            return "content"
+        if role in self._content_roles or role in self._static_roles:
+            return "content" if role in self._content_roles else "static"
         if role in self._navigation_roles:
             return "navigation"
         if role in self._input_roles:
