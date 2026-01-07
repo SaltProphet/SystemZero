@@ -180,6 +180,8 @@ Goal: Surface insights and enable situational awareness
 
 Goal: Capture new screens and build reusable templates
 
+[ ] Address Priority 2 enhancements (Matcher.calculate_score, DiffEngine structure, NodeClassifier roles, NoiseFilters filters)
+
 [ ] Implement Recorder and UITreeExport
 
 [ ] Build TemplateBuilder to convert captures into YAML
