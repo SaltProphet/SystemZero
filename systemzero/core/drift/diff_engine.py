@@ -78,33 +78,41 @@ class DiffEngine:
     
     def _diff_nodes(self, node_a: Any, node_b: Any,
                     added: List[Any], removed: List[Any], modified: List[Any],
-                    path: str,
-                    *_callbacks):
-        """Recursively compare nodes and collect changes."""
+                    path: str) -> int:
+        """Recursively compare nodes and collect changes.
+        Returns number of unchanged nodes encountered.
+        """
+        unchanged = 0
         if not isinstance(node_a, dict) or not isinstance(node_b, dict):
             if node_a != node_b:
                 if node_a:
                     removed.append({"path": path, "node": node_a})
                 if node_b:
                     added.append({"path": path, "node": node_b})
-            return
+            else:
+                unchanged += 1
+            return unchanged
 
         if not self._nodes_similar(node_a, node_b):
             removed.append({"path": path, "node": node_a})
             added.append({"path": path, "node": node_b})
-            return
+            return unchanged
 
         if self._properties_changed(node_a, node_b):
             changes = self._get_property_changes(node_a, node_b)
             modified.append({"path": path, "changes": changes, "node": node_b})
+        else:
+            unchanged += 1
         
         children_a = node_a.get("children", [])
         children_b = node_b.get("children", [])
-        self._diff_children(children_a, children_b, added, removed, modified, path)
+        unchanged += self._diff_children(children_a, children_b, added, removed, modified, path)
+        return unchanged
     
     def _diff_children(self, children_a: list, children_b: list,
-                       added: List[Any], removed: List[Any], modified: List[Any], parent_path: str):
-        """Compare lists of children."""
+                       added: List[Any], removed: List[Any], modified: List[Any], parent_path: str) -> int:
+        """Compare lists of children. Returns count of unchanged child nodes."""
+        unchanged = 0
         max_len = max(len(children_a), len(children_b))
         for i in range(max_len):
             child_a = children_a[i] if i < len(children_a) else None
@@ -115,7 +123,8 @@ class DiffEngine:
             elif child_b is None and child_a is not None:
                 removed.append({"path": child_path, "node": child_a})
             else:
-                self._diff_nodes(child_a, child_b, added, removed, modified, child_path)
+                unchanged += self._diff_nodes(child_a, child_b, added, removed, modified, child_path)
+        return unchanged
     
     def _nodes_similar(self, node_a: Dict[str, Any], node_b: Dict[str, Any]) -> bool:
         """Check if two nodes are similar enough to compare."""

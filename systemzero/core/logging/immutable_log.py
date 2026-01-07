@@ -21,6 +21,7 @@ class ImmutableLog:
     def __init__(self, path: str, verify_on_load: bool = True):
         self.path = Path(path)
         self.verify_on_load = verify_on_load
+        self._load_error = False
         
         # Initialize hash chain
         self.hash_chain = HashChain()
@@ -54,12 +55,13 @@ class ImmutableLog:
         timestamp = event_dict.get('timestamp', time.time())
         
         # Generate hash chain entry
+        previous_hash = self.hash_chain.current_hash
         entry_hash = self.hash_chain.add_entry(event_dict, timestamp)
         
         # Create log entry with hash
         log_entry = {
             "entry_hash": entry_hash,
-            "previous_hash": self.hash_chain.current_hash if self._entries else self.hash_chain.genesis_hash,
+            "previous_hash": previous_hash if self._entries else self.hash_chain.genesis_hash,
             "timestamp": timestamp,
             "data": event_dict
         }
@@ -78,6 +80,8 @@ class ImmutableLog:
         Returns:
             True if log integrity is valid
         """
+        if self._load_error:
+            return False
         result = self.hash_chain.verify_chain(self._entries)
         if isinstance(result, tuple):
             return bool(result[0])
@@ -159,6 +163,7 @@ class ImmutableLog:
                     
                     except json.JSONDecodeError as e:
                         print(f"Error parsing log entry: {e}")
+                        self._load_error = True
             
             # Verify integrity if requested
             if self.verify_on_load and not self.verify_integrity():

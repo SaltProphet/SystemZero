@@ -105,9 +105,14 @@ class SignatureGenerator:
             content = []
         
         if isinstance(obj, dict):
+            # Unwrap root containers
+            if "root" in obj:
+                self._extract_content(obj["root"], content)
+                return content
             # Extract name/text content
-            if "name" in obj and obj["name"]:
-                content.append(str(obj["name"]))
+            for key in ("name", "text", "title", "value"):
+                if key in obj and obj[key]:
+                    content.append(str(obj[key]))
             
             # Recurse into children
             if "children" in obj and isinstance(obj["children"], list):
