@@ -1,5 +1,15 @@
 """Validate UI state transitions against templates."""
 from typing import Dict, Any, Optional, List, Tuple
+from dataclasses import dataclass
+
+
+@dataclass
+class TransitionResult:
+    """Result of a transition check."""
+    is_valid: bool
+    reason: Optional[str] = None
+    expected: Optional[List[str]] = None
+    actual: Optional[str] = None
 
 
 class TransitionChecker:
@@ -16,53 +26,97 @@ class TransitionChecker:
         self._transition_history: List[Tuple[str, str, float]] = []
         self._max_history = 100
     
-    def check_transition(self, from_template: Dict[str, Any], 
-                        to_screen_id: str) -> Dict[str, Any]:
-        """Check if a transition is valid according to template.
+    def check_transition(self, from_id: str, to_id: str, 
+                        templates: Optional[Dict[str, Dict[str, Any]]] = None) -> TransitionResult:
+        """Check if a transition is valid according to templates.
         
         Args:
-            from_template: Source template with valid_transitions
+            from_id: Source screen ID (or template dict for backward compat)
+            to_id: Target screen ID
+            templates: Optional dict of screen_id -> template mappings
+            
+        Returns:
+            TransitionResult with validation info
+        """
+        # Handle backward compatibility: if from_id is a dict, it's the old calling style
+        if isinstance(from_id, dict):
+            from_template = from_id
+            if not from_template:
+                return TransitionResult(
+                    is_valid=True,
+                    reason="No source template (initial state)"
+                )
+            
+            from_screen_id = from_template.get("screen_id", "unknown")
+            valid_transitions = from_template.get("valid_transitions", [])
+            
+            # Empty valid_transitions means any transition is allowed
+            if not valid_transitions:
+                return TransitionResult(
+                    is_valid=True,
+                    reason="No transition restrictions"
+                )
+            
+            # Check if transition is in the valid list
+            for valid_transition in valid_transitions:
+                if valid_transition == to_id:
+                    return TransitionResult(
+                        is_valid=True,
+                        expected=valid_transitions,
+                        actual=to_id
+                    )
+            
+            # Transition not found in valid list
+            return TransitionResult(
+                is_valid=False,
+                reason=f"Unexpected transition: {from_screen_id} -> {to_id}",
+                expected=valid_transitions,
+                actual=to_id
+            )
+        
+        # New calling style: from_id and to_id are strings, templates is dict
+        if templates is None:
+            templates = {}
+        
+        # Get source template
+        from_template = templates.get(from_id)
+        if not from_template:
+            return TransitionResult(
+                is_valid=True,
+                reason="Source template not found"
+            )
+        
+        valid_transitions = from_template.get("valid_transitions", [])
+        
+        # Check if transition is allowed
+        if to_id in valid_transitions:
+            return TransitionResult(
+                is_valid=True,
+                expected=valid_transitions,
+                actual=to_id
+            )
+        
+        expected_transition = f"{from_id} -> {to_id}"
+        
+        return TransitionResult(
+            is_valid=False,
+            reason=f"Unexpected transition: {expected_transition}",
+            expected=valid_transitions,
+            actual=to_id
+        )
+    
+    def is_allowed(self, template: Dict[str, Any], to_screen_id: str) -> bool:
+        """Check if a transition is allowed (convenience method).
+        
+        Args:
+            template: Source template
             to_screen_id: Target screen ID
             
         Returns:
-            Dict with:
-            - valid: bool
-            - reason: str (if invalid)
-            - expected: list of valid transitions
+            True if transition is allowed
         """
-        if not from_template:
-            return {
-                "valid": True,
-                "reason": "No source template (initial state)"
-            }
-        
-        from_screen_id = from_template.get("screen_id", "unknown")
-        valid_transitions = from_template.get("valid_transitions", [])
-        
-        # Empty valid_transitions means any transition is allowed
-        if not valid_transitions:
-            return {
-                "valid": True,
-                "reason": "No transition restrictions"
-            }
-        
-        # Check if transition is in the valid list
-        expected_transition = f"{from_screen_id} -> {to_screen_id}"
-        
-        for valid_transition in valid_transitions:
-            if valid_transition == expected_transition:
-                return {
-                    "valid": True,
-                    "transition": expected_transition
-                }
-        
-        # Transition not found in valid list
-        return {
-            "valid": False,
-            "reason": f"Unexpected transition: {expected_transition}",
-            "expected": valid_transitions,
-            "actual": expected_transition
-        }
+        result = self.check_transition(template, to_screen_id)
+        return result.is_valid
     
     def record_transition(self, from_screen_id: str, to_screen_id: str, 
                          timestamp: float) -> None:

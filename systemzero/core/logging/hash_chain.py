@@ -23,6 +23,22 @@ class HashChain:
         self.current_hash = genesis_hash
         self._chain_length = 0
     
+    def compute_hash(self, entry: Dict[str, Any]) -> str:
+        """Compute hash of an entry (without adding to chain).
+        
+        Args:
+            entry: Entry dictionary to hash
+            
+        Returns:
+            SHA256 hash of the entry
+        """
+        if isinstance(entry, dict):
+            data_str = json.dumps(entry, sort_keys=True)
+        else:
+            data_str = str(entry)
+        
+        return hashlib.sha256(data_str.encode('utf-8')).hexdigest()
+    
     def add_entry(self, entry_data: Any, timestamp: float) -> str:
         """Add an entry to the hash chain.
         
@@ -78,7 +94,7 @@ class HashChain:
         """Verify an entire chain of entries.
         
         Args:
-            entries: List of entry dicts with 'hash', 'data', 'timestamp'
+            entries: List of entry dicts with 'entry_hash', 'data', 'timestamp'
             
         Returns:
             True if entire chain is valid
@@ -90,13 +106,13 @@ class HashChain:
         
         for entry in entries:
             if not self.verify_entry(
-                entry['hash'],
+                entry['entry_hash'],
                 entry['data'],
                 entry['timestamp'],
                 previous_hash
             ):
                 return False
-            previous_hash = entry['hash']
+            previous_hash = entry['entry_hash']
         
         return True
     

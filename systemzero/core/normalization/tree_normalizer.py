@@ -14,7 +14,7 @@ class TreeNormalizer:
     """
     
     def __init__(self):
-        self._transient_props = {"timestamp", "id", "instance_id", "hash"}
+        self._transient_props = {"timestamp", "id", "instance_id", "hash", "focused"}
         self._property_mappings = {
             "label": "name",
             "title": "name",

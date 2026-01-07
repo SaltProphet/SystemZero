@@ -105,22 +105,31 @@ def create_temp_log() -> Tuple[str, ImmutableLog]:
     return (log_path, log)
 
 
-def create_test_log(entries: Optional[List[Any]] = None) -> Tuple[str, ImmutableLog]:
+def create_test_log(log_path: str = None, event_count: int = 0) -> ImmutableLog:
     """Create a test log file with optional pre-populated entries.
     
     Args:
-        entries: Optional list of entries to append (DriftEvent objects or dicts)
+        log_path: Path for log file (creates temp file if None)
+        event_count: Number of dummy DriftEvent entries to generate
         
     Returns:
-        Tuple of (log_path, log_instance)
+        ImmutableLog object
     """
-    log_path, log = create_temp_log()
+    if log_path is None:
+        temp_dir = tempfile.mkdtemp()
+        log_path = os.path.join(temp_dir, "test_log.jsonl")
     
-    if entries:
-        for entry in entries:
-            log.append(entry)
+    log = ImmutableLog(log_path, verify_on_load=False)
     
-    return (log_path, log)
+    # Add dummy drift events
+    for i in range(event_count):
+        drift_event = DriftEvent("layout", "info", {
+            "event_number": i,
+            "reason": f"test_event_{i}"
+        })
+        log.append(drift_event)
+    
+    return log
 
 
 def assert_drift_detected(

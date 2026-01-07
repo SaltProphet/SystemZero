@@ -15,9 +15,10 @@ class TemplateValidator:
     
     def __init__(self):
         self._required_fields: Set[str] = {
-            "screen_id", "required_nodes", "structure_signature"
+            "screen_id"
         }
         self._optional_fields: Set[str] = {
+            "required_nodes", "structure_signature",
             "valid_transitions", "metadata", "version"
         }
     

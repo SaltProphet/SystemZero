@@ -58,7 +58,7 @@ class ImmutableLog:
         
         # Create log entry with hash
         log_entry = {
-            "hash": entry_hash,
+            "entry_hash": entry_hash,
             "previous_hash": self.hash_chain.current_hash if self._entries else self.hash_chain.genesis_hash,
             "timestamp": timestamp,
             "data": event_dict

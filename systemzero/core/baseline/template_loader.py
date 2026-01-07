@@ -68,7 +68,8 @@ class TemplateLoader:
         # Load all YAML files
         for yaml_file in self.templates_dir.glob("*.yaml"):
             try:
-                template = self.load(str(yaml_file))
+                # Pass just the filename, not the full path
+                template = self.load(yaml_file.name)
                 if template and "screen_id" in template:
                     self._cache[template["screen_id"]] = template
             except Exception as e:
@@ -91,6 +92,10 @@ class TemplateLoader:
             self.load_all()
         
         return self._cache.get(screen_id)
+    
+    def get_template(self, screen_id: str) -> Optional[Dict[str, Any]]:
+        """Alias for get() for backward compatibility."""
+        return self.get(screen_id)
     
     def list_templates(self) -> List[str]:
         """List all available template screen IDs."""
