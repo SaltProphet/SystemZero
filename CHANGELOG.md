@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 6.1] - 2026-01-07 - Authentication & Authorization ✓ COMPLETE
+
+### Summary
+Implemented production-grade API authentication with SHA256-hashed API keys, role-based access control (RBAC), and security middleware. Added 27 comprehensive auth tests, rate limiting (100 req/min), CORS support, and request size limits. All 138 tests pass (111 Phase 5 + 27 new auth).
+
+### Highlights
+- **APIKeyManager**: SHA256 key hashing, YAML persistence, metadata tracking (created_at, last_used, use_count)
+- **Role-based access control**: Three roles (admin, operator, readonly) with granular permission matrix
+- **Auth endpoints**: POST /auth/token (admin), POST /auth/validate, GET /auth/keys (admin)
+- **Protected endpoints**: POST /captures, POST /templates require operator+ role; GET endpoints public
+- **Security middleware**: RateLimiter (sliding window), RequestSizeLimiter (10MB), CORS, X-RateLimit headers
+- **Dependency injection**: FastAPI Depends(verify_api_key) for automatic header validation
+- **Test coverage**: Unit tests (APIKeyManager), endpoint tests (auth + protected routes), role permission validation
+
+### Deliverables
+- interface/api/auth.py (APIKeyManager, Role, verify_api_key, check_permission)
+- interface/api/security.py (RateLimiter, RateLimitMiddleware, RequestSizeLimitMiddleware, CORS)
+- interface/api/server.py (auth endpoints, protected routes, version 0.6.0)
+- config/api_keys.yaml (YAML template with schema)
+- tests/test_api_auth.py (27 comprehensive tests)
+- requirements.txt (added fastapi, uvicorn, pydantic, httpx, pytest-asyncio)
+
+### Key Features
+1. **Key Generation**: 32-byte random keys using secrets.token_urlsafe()
+2. **Hashing**: SHA256 hex encoding (64 chars) - plaintext never stored
+3. **Metadata**: name, role, description, created_at, last_used, use_count
+4. **Token lifecycle**: Create (admin), validate (any), revoke (admin), list (admin)
+5. **Rate limiting**: 100 requests/min per IP, 20 burst capacity
+6. **Permission matrix**:
+   - Admin: read:*, write:*, admin:*
+   - Operator: read:*, write:captures/templates
+   - Readonly: read:* only
+
+### Breaking Changes
+- POST /captures now requires `X-API-Key` header with operator+ role
+- POST /templates now requires `X-API-Key` header with operator+ role
+- GET endpoints remain public (no auth required)
+
+### Migration Guide
+1. Generate bootstrap admin key: `python3 -c "from interface.api.auth import APIKeyManager; m = APIKeyManager(); print(m.create_key('admin', 'admin', 'Bootstrap'))"`
+2. Store in config/api_keys.yaml
+3. Update clients to include `X-API-Key: <key>` header on POST requests
+
+### Testing
+- TestAPIKeyManager: 10 tests for key generation, hashing, validation, revocation, listing
+- TestAuthenticationEndpoints: 8 tests for token creation, validation, key listing
+- TestProtectedEndpoints: 7 tests for role-based access enforcement
+- TestRolePermissions: 3 tests for permission matrix validation
+- **All tests passing**: 138/138 ✓
+
+---
+
 ## [Phase 5] - 2026-01-07 - REST API + CLI Server ✓ COMPLETE
 
 ### Summary

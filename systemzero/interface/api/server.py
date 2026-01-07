@@ -357,14 +357,14 @@ def create_token(
         manager = get_key_manager()
         token = manager.create_key(
             name=request.name,
-            role=request.role,
-            description=request.description
+            role=request.role or Role.READONLY,
+            description=request.description or ""
         )
         
         return TokenResponse(
             token=token,
             name=request.name,
-            role=request.role,
+            role=request.role or Role.READONLY,
             message="Token created successfully. Save this token securely - it will not be shown again."
         )
     except ValueError as e:

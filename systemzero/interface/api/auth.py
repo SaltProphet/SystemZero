@@ -56,8 +56,12 @@ class APIKeyManager:
         # Ensure data is a dict with "keys" field
         if not isinstance(data, dict):
             data = {"keys": {}}
-        if "keys" not in data:
+        elif "keys" not in data:
             data["keys"] = {}
+        
+        # Never cache None or incomplete data
+        if not isinstance(data, dict) or "keys" not in data:
+            raise ValueError("Failed to load keys file properly")
         
         self._keys_cache = data
         self._cache_time = now
@@ -134,16 +138,19 @@ class APIKeyManager:
         key_hash = self.hash_key(key)
         data = self._load_keys()
         
-        keys = data.get("keys", {})
-        if key_hash not in keys:
+        # data should always have "keys" key due to _load_keys normalization
+        if "keys" not in data or not isinstance(data["keys"], dict):
+            return None
+        
+        if key_hash not in data["keys"]:
             return None
         
         # Update last used timestamp and count
-        metadata = keys[key_hash]
+        metadata = data["keys"][key_hash]
         metadata["last_used"] = datetime.now(timezone.utc).isoformat()
         metadata["use_count"] = metadata.get("use_count", 0) + 1
         
-        # Save updated metadata (async in production)
+        # Save updated metadata
         self._save_keys(data)
         
         return metadata

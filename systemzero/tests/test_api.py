@@ -1,9 +1,37 @@
 """Phase 5 API server tests."""
 import json
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
 from interface.api.server import app
+from interface.api.auth import APIKeyManager, Role
 
+
+# Setup test API key manager
+@staticmethod
+def _setup_test_auth():
+    """Setup test authentication."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        temp_path = Path(f.name)
+        f.write('keys: {}')
+    
+    manager = APIKeyManager(keys_file=temp_path)
+    # Create test keys
+    operator_key = manager.create_key("test-operator", Role.OPERATOR, "Test operator")
+    return manager, operator_key
+
+
+# Initialize test auth
+test_manager, test_operator_key = _setup_test_auth()
+
+# Create client with mocked auth
+patcher = patch('interface.api.auth.get_key_manager', return_value=test_manager)
+patcher.start()
+patcher2 = patch('interface.api.server.get_key_manager', return_value=test_manager)
+patcher2.start()
 
 client = TestClient(app)
 
@@ -39,7 +67,11 @@ def test_capture_endpoint():
         }
     }
     
-    response = client.post("/captures", json={"tree": tree, "app": "test_app"})
+    response = client.post(
+        "/captures",
+        headers={"X-API-Key": test_operator_key},
+        json={"tree": tree, "app": "test_app"}
+    )
     assert response.status_code == 200
     data = response.json()
     assert "path" in data

@@ -2,6 +2,7 @@
 import pytest
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -9,7 +10,7 @@ from interface.api.server import app
 from interface.api.auth import APIKeyManager, Role
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def temp_keys_file():
     """Create a temporary API keys file for testing."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
@@ -25,7 +26,14 @@ def temp_keys_file():
 @pytest.fixture
 def key_manager(temp_keys_file):
     """Create an API key manager with temporary file."""
-    return APIKeyManager(keys_file=temp_keys_file)
+    manager = APIKeyManager(keys_file=temp_keys_file)
+    # Start fresh for each test
+    manager._keys_cache = None
+    manager._cache_time = None
+    # Clear the file with valid YAML
+    with open(temp_keys_file, 'w') as f:
+        f.write('keys: {}')
+    return manager
 
 
 @pytest.fixture
@@ -47,9 +55,13 @@ def readonly_key(key_manager):
 
 
 @pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
+def client(key_manager):
+    """Create test client with mocked key manager."""
+    # Mock the global key manager to use our test instance
+    # Patch in both places where it's imported and used
+    with patch('interface.api.auth.get_key_manager', return_value=key_manager):
+        with patch('interface.api.server.get_key_manager', return_value=key_manager):
+            yield TestClient(app)
 
 
 class TestAPIKeyManager:
@@ -160,6 +172,7 @@ class TestAuthenticationEndpoints:
             json={"name": "new-key", "role": "operator", "description": "Test"}
         )
         
+        print(f"Response: {response.status_code} {response.text}")
         assert response.status_code == 200
         data = response.json()
         assert "token" in data
