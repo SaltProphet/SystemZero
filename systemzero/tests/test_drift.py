@@ -468,7 +468,7 @@ class TestDriftEvent:
         
         assert event.drift_type == "layout"
         assert event.severity == "warning"
-        assert event.metadata == {"test": "data"}
+        assert event.details == {"test": "data"}
     
     def test_drift_event_to_dict(self):
         """Verify DriftEvent converts to dict properly."""
@@ -478,5 +478,5 @@ class TestDriftEvent:
         
         assert event_dict["drift_type"] == "content"
         assert event_dict["severity"] == "critical"
-        assert event_dict["metadata"]["key"] == "value"
+        assert event_dict["details"]["key"] == "value"
         assert "timestamp" in event_dict
