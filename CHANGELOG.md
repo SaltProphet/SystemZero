@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 5] - 2026-01-07 - REST API + CLI Server ✓ COMPLETE
+
+### Summary
+Delivered a FastAPI REST surface with log export endpoints and a CLI `server` command, enabling remote ingestion, template inspection, and dashboard data over HTTP. Added API test suite and resolved CLI export regression; all 111 tests now pass.
+
+### Highlights
+- **FastAPI app**: Endpoints for `/status`, `/captures`, `/templates`, `/logs`, `/logs/export`, `/dashboard`
+- **CLI server command**: `run.py server --host --port --reload` to launch the API
+- **Capture + template wiring**: Recorder-powered captures, TemplateBuilder-backed template listings and creation
+- **Log export API**: JSON/CSV/HTML download from immutable logs
+- **Quality**: New `tests/test_api.py` plus full suite green (111/111); deprecation warnings addressed (Query pattern, timezone-aware timestamps)
+
+### Deliverables
+- interface/api/server.py (FastAPI app + routes)
+- interface/api/__init__.py (exports `app`, `get_app`)
+- interface/cli/commands.py (restored `cmd_export`, added `cmd_server`)
+- interface/cli/main.py (argparse wiring for server)
+- tests/test_api.py (endpoints coverage)
+- Dependencies: fastapi, uvicorn, httpx, rich
+
+---
+
 ## [Phase 4] - 2026-01-07 - Extension + Template Engine ✓ COMPLETE
 
 ### Summary

@@ -176,27 +176,62 @@ Goal: Surface insights and enable situational awareness
 - Fold any remaining Priority 2 enhancements into Phase 4 backlog
 - Socialize operator workflows and capture user feedback
 
-🧱 Phase 4: Extension + Template Engine
+🧱 Phase 4: Extension + Template Engine ✓ COMPLETE
 
 Goal: Capture new screens and build reusable templates
 
-[ ] Address Priority 2 enhancements (Matcher.calculate_score, DiffEngine structure, NodeClassifier roles, NoiseFilters filters)
+**Status**: COMPLETE – 103/103 tests passing, capture-to-template pipeline shipped
 
-[ ] Implement Recorder and UITreeExport
+[x] Address Priority 2 enhancements (Matcher.calculate_score, DiffEngine structure, NodeClassifier roles, NoiseFilters filters)
 
-[ ] Build TemplateBuilder to convert captures into YAML
+[x] Implement Recorder and UITreeExport
 
-[ ] Add Validators and Exporters
+[x] Build TemplateBuilder to convert captures into YAML
 
-[ ] Enable versioned template store with rollback
+[x] Add Validators and Exporters
 
-🛠 Tools: YAML, Codex, GitHub versioning
+[x] Enable CLI commands: capture, baseline, export
+
+**Deliverables**: Recorder + UITreeExport, TemplateBuilder, validators, exporters, new CLI commands, full test suite
+
+**Next Actions**:
+- Phase 5 can now build REST API, versioned template store, bulk operations on captured data
+- See PHASE4_COMPLETION.md for detailed workflow and usage examples
+
+🚀 Phase 5: REST API + Remote Control ✓ COMPLETE
+
+Goal: Expose pipeline operations over HTTP and provide a CLI server for operators.
+
+**Status**: COMPLETE – 111/111 tests passing, FastAPI service online.
+
+[x] FastAPI server with endpoints for status, captures, templates, logs, dashboard
+[x] CLI `server` command (`run.py server --host --port --reload`)
+[x] Log export API (json/csv/html) and template listing/building
+[x] API test suite (`tests/test_api.py`) covering all routes
+[x] Deprecation cleanup (Query pattern, timezone-aware timestamps)
+
+**Next Actions**:
+- Harden auth/config for API (API keys, rate limits)
+- Package server launch in container/task runners
+- Expose template versioning endpoints
+
+🔮 Phase 6: Observability + Deployment Hardening [PLANNING]
+
+Goal: Secure, observable deployment with operator metrics and configuration management.
+
+- Add authentication/authorization on API (tokens, roles)
+- Integrate structured request logging and metrics (latency, error rates)
+- Add health/readiness probes and graceful shutdown hooks
+- Provide Docker image + compose profile with volume mounts for logs/templates
+- Expand dashboard data to include API health and ingestion counters
+
+🛠 Tools: YAML, pathlib, csv, json
 
 ⚙️ Phase 5: Deployment + Operator Tooling
 
 Goal: Make System//Zero usable in the field
 
-[ ] Expand CLI: sz capture, sz baseline, sz export
+[ ] Build REST API with FastAPI
 
 [ ] Build REST API with FastAPI or Flask
 

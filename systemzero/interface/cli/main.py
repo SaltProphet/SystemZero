@@ -17,6 +17,7 @@ from interface.cli.commands import (
     cmd_consistency,
     cmd_baseline,
     cmd_export,
+    cmd_server,
 )
 
 
@@ -52,8 +53,19 @@ def main():
     replay_parser.add_argument('--end', type=int, help='End index')
     replay_parser.add_argument('--entry', '-e', type=int, help='View single entry')
     
-    # Baseline command
-    baseline_parser = subparsers.add_parser('baseline', help='Manage baseline templates')
+    # Export command
+    export_parser = subparsers.add_parser('export', help='Export logs to multiple formats')
+    export_parser.add_argument('--log', '-l', help='Log file path (default: logs/systemzero.log)')
+    export_parser.add_argument('--format', '-f', choices=['json', 'csv', 'html'], default='json',
+                             help='Output format (default: json)')
+    export_parser.add_argument('--out', '-o', help='Output file path (auto-generated if omitted)')
+
+    # Server command
+    server_parser = subparsers.add_parser('server', help='Start FastAPI REST server')
+    server_parser.add_argument('--host', default='0.0.0.0', help='Server host (default: 0.0.0.0)')
+    server_parser.add_argument('--port', type=int, default=8000, help='Server port (default: 8000)')
+    server_parser.add_argument('--reload', action='store_true', help='Auto-reload on code changes')
+
     baseline_parser.add_argument('action', choices=['list', 'build', 'validate', 'show'],
                                 help='Action to perform')
     baseline_parser.add_argument('--source', '-s', help='Source capture file for build action')
@@ -106,6 +118,8 @@ def main():
         cmd_baseline(args.action, args.source, args.out, args.template, args.app)
     elif args.command == 'export':
         cmd_export(args.log, args.format, args.out)
+    elif args.command == 'server':
+        cmd_server(args.host, args.port, args.reload)
     else:
         parser.print_help()
 
