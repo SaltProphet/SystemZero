@@ -2,6 +2,98 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 6.2] - 2026-01-07 - Observability: Logging, Metrics, Health ✓ COMPLETE
+
+### Summary
+Delivered comprehensive observability with structured JSON logging, in-memory metrics collection, and health check system. Added request logging middleware with automatic timing/context, health checks for dependencies, and metrics endpoints. All 161 tests pass (138 Phase 5/6.1 + 23 new observability).
+
+### Highlights
+- **Structured logging**: JSON formatter with contextual fields (request_id, user, endpoint, duration)
+- **Metrics collection**: Counters (http_requests_total, errors), histograms (response_time with p50/p95/p99), gauges (active_connections)
+- **Health checks**: Dependency validation (log directory writable, template directory readable, API keys loadable)
+- **Request middleware**: Automatic logging of all HTTP requests with timing, status codes, user roles
+- **Observability endpoints**: GET /health, GET /metrics
+- **ContextVar**: Thread-safe log context for async environments
+
+### Deliverables
+- core/observability/structured_logger.py (JSONFormatter, ContextLoggerAdapter, add_context)
+- core/observability/metrics.py (MetricsCollector with counters/histograms/gauges)
+- core/observability/health.py (HealthChecker with default dependency checks)
+- core/observability/middleware.py (RequestLoggingMiddleware)
+- interface/api/server.py (integrated logging, added /health and /metrics endpoints, version 0.6.1)
+- tests/test_observability.py (23 comprehensive tests)
+
+### Key Features
+1. **Structured Logging**:
+   - JSON output for machine parsing (configurable standard format for dev)
+   - Automatic context injection (request_id, user_role, endpoint)
+   - Exception handling with full tracebacks
+   - Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+2. **Metrics Collection**:
+   - **Counters**: http_requests_total{method,path,status}, http_errors_total{method,path,exception}
+   - **Histograms**: http_request_duration_seconds with percentiles (p50, p95, p99)
+   - **Gauges**: http_requests_active (concurrent requests)
+   - Label support for dimensional metrics
+   - In-memory storage (10k observation limit per histogram)
+
+3. **Health Checks**:
+   - **log_directory**: Verifies log directory is writable
+   - **template_directory**: Checks template directory accessible with count
+   - **api_keys_file**: Validates API keys file loadable with key count
+   - Overall status: healthy, degraded, unhealthy
+   - Custom check registration support
+
+4. **Request Middleware**:
+   - Generates unique request_id (UUID4)
+   - Logs request start with method, path, client IP, query params
+   - Measures duration with millisecond precision
+   - Logs response with status code and timing
+   - Records metrics (counters + histograms)
+   - Adds X-Request-ID header to responses
+   - Handles exceptions with error metrics
+
+### Endpoints
+- `GET /health`: Health check with dependency status
+- `GET /metrics`: Metrics data (counters, histograms, gauges, metadata)
+
+### Testing
+- TestStructuredLogger: 7 tests for JSON formatter, context management, exception handling
+- TestMetricsCollector: 8 tests for counters, histograms, gauges, labels, percentiles
+- TestHealthChecker: 6 tests for health checks, custom checks, exception handling
+- TestMetricsIntegration: 2 tests for singleton pattern, persistence
+- **All tests passing**: 161/161 ✓
+
+### Usage Examples
+
+**Structured Logging**:
+```python
+from core.observability import get_logger, add_context
+
+logger = get_logger(__name__)
+add_context(request_id="abc123", user="admin")
+logger.info("Processing request")  # Includes context automatically
+```
+
+**Metrics**:
+```python
+from core.observability import get_metrics
+
+metrics = get_metrics()
+metrics.increment_counter("requests", labels={"method": "GET", "status": "200"})
+metrics.observe_histogram("response_time", 0.125)
+```
+
+**Health Checks**:
+```python
+from core.observability import get_health_checker
+
+checker = get_health_checker()
+result = checker.run_checks()  # {"status": "healthy", "checks": [...]}
+```
+
+---
+
 ## [Phase 6.1] - 2026-01-07 - Authentication & Authorization ✓ COMPLETE
 
 ### Summary
