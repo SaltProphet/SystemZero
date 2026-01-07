@@ -216,10 +216,49 @@ def cmd_status() -> None:
     display_status_dashboard(status)
 
 
-def cmd_capture() -> None:
-    """Start capture mode to record new screens."""
-    display("[SZ] capture: not yet implemented (Phase 4)")
-    # TODO Phase 4: Implement capture mode
+def cmd_capture(output_path: Optional[str] = None, tree_path: Optional[str] = None) -> None:
+    """Capture a UI tree and persist it to disk.
+    
+    Args:
+        output_path: Optional capture file path (defaults to captures/capture_<timestamp>.json)
+        tree_path: Optional JSON file to use instead of live capture (for testing/offline)
+    """
+    from extensions.capture_mode.recorder import Recorder
+    from extensions.capture_mode.ui_tree_export import export_tree
+    from extensions.capture_mode.signature_export import export_signatures
+
+    display("[bold cyan]Capturing UI tree...[/bold cyan]")
+
+    # If a tree file is provided, load it; otherwise capture live
+    tree = None
+    if tree_path:
+        candidate = Path(tree_path)
+        if candidate.exists():
+            with open(candidate, "r", encoding="utf-8") as f:
+                try:
+                    tree = json.load(f)
+                    display(f"Using provided tree file: {tree_path}")
+                except json.JSONDecodeError:
+                    display(f"[red]Invalid JSON in {tree_path}[/red]")
+                    return
+        else:
+            display(f"[red]Tree file not found: {tree_path}[/red]")
+            return
+
+    recorder = Recorder()
+    result = recorder.record(Path(output_path) if output_path else None, tree)
+
+    # Also emit standalone normalized tree and signatures alongside payload for convenience
+    path = Path(result["path"])
+    export_tree(result.get("normalized", {}), path.with_suffix(".normalized.json"))
+    export_signatures(result.get("signatures", {}), path.with_suffix(".signatures.json"))
+
+    display(
+        f"[green]✓ Capture saved[/green] → {path}\n"
+        f"full={result['signatures']['full']}\n"
+        f"struct={result['signatures']['structural']}\n"
+        f"content={result['signatures']['content']}"
+    )
 
 
 def cmd_dashboard(log_path: Optional[str] = None) -> None:

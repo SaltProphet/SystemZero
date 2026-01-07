@@ -54,7 +54,9 @@ def main():
     status_parser = subparsers.add_parser('status', help='Show system status')
     
     # Capture command (Phase 4)
-    capture_parser = subparsers.add_parser('capture', help='Start capture mode (Phase 4)')
+    capture_parser = subparsers.add_parser('capture', help='Capture current UI tree')
+    capture_parser.add_argument('--out', '-o', help='Output file path (default: captures/capture_<timestamp>.json)')
+    capture_parser.add_argument('--tree', '-t', help='Existing tree JSON to record instead of live capture')
 
     # Dashboard command
     dashboard_parser = subparsers.add_parser('dashboard', help='Launch live monitoring dashboard')
@@ -81,7 +83,7 @@ def main():
     elif args.command == 'status':
         cmd_status()
     elif args.command == 'capture':
-        cmd_capture()
+        cmd_capture(args.out, args.tree)
     elif args.command == 'dashboard':
         cmd_dashboard(args.log)
     elif args.command == 'forensic':
