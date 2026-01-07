@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  systemzero:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: systemzero-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SYSTEMZERO_ENV=development
+      - LOG_LEVEL=INFO
+      - LOG_JSON=false
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    volumes:
+      # Mount code for development (comment out for production)
+      - ./systemzero:/app/systemzero
+      # Persistent data
+      - systemzero-logs:/app/logs
+      - systemzero-data:/app/data
+      # Config (use bind mount for easy editing)
+      - ./systemzero/config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  systemzero-logs:
+    driver: local
+  systemzero-data:
+    driver: local
+
+networks:
+  default:
+    name: systemzero-network

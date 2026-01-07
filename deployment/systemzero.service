@@ -1,0 +1,52 @@
+[Unit]
+Description=System//Zero Environment Drift Detection API
+After=network.target
+Documentation=https://github.com/SaltProphet/SystemZero
+
+[Service]
+Type=simple
+User=systemzero
+Group=systemzero
+WorkingDirectory=/opt/systemzero
+Environment="PATH=/opt/systemzero/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/systemzero"
+Environment="SYSTEMZERO_ENV=production"
+Environment="LOG_LEVEL=INFO"
+Environment="LOG_JSON=true"
+
+# Start command
+ExecStart=/opt/systemzero/.venv/bin/uvicorn systemzero.interface.api.server:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 4 \
+    --log-level info
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+StartLimitBurst=5
+StartLimitIntervalSec=60s
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/systemzero/logs /opt/systemzero/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=1G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=systemzero
+
+[Install]
+WantedBy=multi-user.target
