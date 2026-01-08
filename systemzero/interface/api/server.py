@@ -5,7 +5,8 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query, Depends
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
+import yaml
 from pydantic import BaseModel
 
 from interface.api.auth import verify_api_key, get_key_manager, Role, APIKeyManager
@@ -147,6 +148,14 @@ def health_check() -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Health endpoint disabled")
     logger.info("Health check requested")
     return health_checker.run_checks()
+
+
+@app.get("/openapi.yaml")
+def openapi_yaml() -> Response:
+    """Serve OpenAPI schema as YAML for operators/tools."""
+    schema = app.openapi()
+    content = yaml.safe_dump(schema, sort_keys=False)
+    return Response(content=content, media_type="application/yaml")
 
 
 @app.get("/metrics")
