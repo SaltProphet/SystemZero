@@ -105,7 +105,7 @@ class TokenResponse(BaseModel):
 app = FastAPI(
     title="System//Zero API",
     description="REST API for environment parser drift detection with authentication and observability",
-    version="0.6.1"
+    version="0.7.0"
 )
 
 # Configure request logging and security middleware
@@ -126,7 +126,7 @@ def root():
     """API root endpoint."""
     return {
         "service": "System//Zero",
-        "version": "0.6.0",
+        "version": "0.7.0",
         "docs": "/docs",
         "authentication": "X-API-Key header required for POST endpoints",
         "endpoints": {
