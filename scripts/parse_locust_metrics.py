@@ -2,8 +2,13 @@
 """Parse Locust CSV stats and extract key metrics for reporting."""
 import csv
 import sys
+import os
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+# SLO thresholds (configurable via env)
+P95_THRESHOLD_MS = float(os.getenv("SLO_P95_MS", "150"))
+FAILURE_THRESHOLD_PCT = float(os.getenv("SLO_FAILURE_PCT", "1.0"))
 
 
 def parse_stats(stats_csv: Path) -> Dict[str, Dict[str, float]]:
@@ -23,6 +28,17 @@ def parse_stats(stats_csv: Path) -> Dict[str, Dict[str, float]]:
                 'failure_rate': float(row.get('Failure Rate', 0)),
             }
     return metrics
+
+
+def check_slos(metrics: Dict[str, Dict[str, float]]) -> List[str]:
+    """Check SLOs and return list of violations."""
+    violations = []
+    for endpoint, m in metrics.items():
+        if m['p95_ms'] > P95_THRESHOLD_MS:
+            violations.append(f"{endpoint}: p95={m['p95_ms']:.2f}ms exceeds {P95_THRESHOLD_MS}ms")
+        if m['failure_rate'] > FAILURE_THRESHOLD_PCT:
+            violations.append(f"{endpoint}: failure_rate={m['failure_rate']:.1f}% exceeds {FAILURE_THRESHOLD_PCT}%")
+    return violations
 
 
 def format_report(metrics: Dict[str, Dict[str, float]]) -> str:
@@ -48,6 +64,17 @@ def main():
     metrics = parse_stats(stats_csv)
     report = format_report(metrics)
     print(report)
+    
+    # Check SLOs
+    violations = check_slos(metrics)
+    if violations:
+        print("\n### ⚠️ SLO Violations")
+        for v in violations:
+            print(f"- {v}")
+        if os.getenv("SLO_STRICT", "false").lower() == "true":
+            sys.exit(1)
+    else:
+        print("\n✓ All SLOs passed")
 
 
 if __name__ == "__main__":
