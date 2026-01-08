@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: systemzero
+  labels:
+    app: systemzero
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: systemzero
+  template:
+    metadata:
+      labels:
+        app: systemzero
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/saltprophet/systemzero:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: SZ_LOG_LEVEL
+              value: "INFO"
+            - name: SZ_JSON_LOGS
+              value: "true"
+            - name: SZ_ENABLE_RATE_LIMITING
+              value: "true"
+            - name: SZ_RATE_LIMIT_RPM
+              value: "60"
+            - name: SZ_RATE_LIMIT_BURST
+              value: "40"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

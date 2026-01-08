@@ -9,8 +9,8 @@ System//Zero is a tactical clarity tool for tracking how systems behave — plat
 
 ---
 
-## Current Status: Phase 6  
-Authentication, observability, deployment packaging, and config are in place. FastAPI REST API + CLI server with 161/161 tests passing; container, systemd, and PM2 options are available via SZ_* environment configuration.
+## Current Status: Phase 7  
+Phase 6 is complete. Phase 7 has started with API documentation and performance groundwork. FastAPI REST API + CLI server with 166/166 tests passing; container, systemd, PM2 options, and CI/CD are in place. New: `/openapi.yaml`, operator/developer guides, security scan workflow, and requirements lock.
 
 ---
 
@@ -33,6 +33,7 @@ Authentication, observability, deployment packaging, and config are in place. Fa
 | **`CHANGELOG.md`** | Commit-level change tracking |
 | **`LEGAL.md`** | Licensing and usage terms |
 | **`SECURITY.md`** | Security policy and disclosure process |
+| **`docs/`** | Operator, developer, performance guides, and API reference |
 
 ---
 
@@ -53,6 +54,20 @@ Authentication, observability, deployment packaging, and config are in place. Fa
 - Prep for UI scaffolding
 
 ### ✅ Phase 3: UI + Automation  
+
+### 🚀 Phase 7: v1.0.0 Readiness (in progress)
+- OpenAPI YAML route (`/openapi.yaml`) + export script
+- Docs: Operator, Developer, Performance guides
+- Benchmark script for core endpoints
+- Security workflow: Trivy FS/image scans in CI
+- Pinned requirements for reproducible builds
+
+Quick links:
+- API Docs (Swagger): /docs
+- OpenAPI YAML: /openapi.yaml
+- API Reference: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+- Operator Guide: [docs/OPERATOR_GUIDE.md](docs/OPERATOR_GUIDE.md)
+- Developer Guide: [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)
 - Local-first Textual UIs for dashboard, replay, consistency monitor  
 - Immutable log views with filtering and diff summaries  
 - Operator-defined filters and triggers  
