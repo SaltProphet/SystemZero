@@ -1,0 +1,2 @@
+# Developer-only dependencies (not required for CI)
+locust>=2.24.0

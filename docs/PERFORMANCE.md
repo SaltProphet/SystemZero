@@ -7,6 +7,19 @@ Baseline latency metrics for key API endpoints, measured in-process via httpx.
 python -m systemzero.scripts.bench_api
 ```
 
+## Load Testing (Locust)
+
+Install dev deps and run a short headless test:
+```bash
+pip install -r requirements-dev.txt
+make load HOST=http://localhost:8000
+```
+
+Customize users/ramp/time by passing Locust flags:
+```bash
+LOCUST_HOST=http://localhost:8000 locust -f load/locustfile.py --headless -u 200 -r 20 -t 5m
+```
+
 ## Target SLOs
 - p95 latency < 100ms
 - Error rate < 0.1%
