@@ -116,6 +116,9 @@ System//Zero now includes enterprise-grade infrastructure:
 - [x] Coverage artifacts collected
 - [x] Docker build stage working
 - [x] Release workflow ready
+ - [x] OpenAPI export workflow (artifact)
+ - [x] Security scan workflow (Trivy FS/image)
+ - [x] Locust smoke test workflow (PR checks)
 
 ---
 
