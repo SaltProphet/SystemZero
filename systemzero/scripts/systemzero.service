@@ -1,0 +1,45 @@
+[Unit]
+Description=System//Zero API Service
+After=network.target
+
+[Service]
+Type=simple
+User=systemzero
+Group=systemzero
+WorkingDirectory=/opt/systemzero
+
+# Environment configuration (optionally use EnvironmentFile)
+Environment="SZ_LOG_LEVEL=INFO"
+Environment="SZ_JSON_LOGS=true"
+Environment="SZ_LOG_PATH=/opt/systemzero/logs/systemzero.log"
+Environment="SZ_ENABLE_HEALTH=true"
+Environment="SZ_ENABLE_METRICS=true"
+Environment="SZ_ENABLE_RATE_LIMITING=true"
+Environment="SZ_RATE_LIMIT_RPM=100"
+Environment="SZ_RATE_LIMIT_BURST=20"
+Environment="SZ_MAX_REQUEST_SIZE_MB=10"
+Environment="SZ_API_KEYS_PATH=/opt/systemzero/config/api_keys.yaml"
+Environment="PYTHONPATH=/opt/systemzero"
+
+# Use project virtual environment; ensure it is created at /opt/systemzero/.venv
+ConditionPathExists=/opt/systemzero/.venv/bin/uvicorn
+ExecStart=/opt/systemzero/.venv/bin/uvicorn systemzero.interface.api.server:get_app --factory --host 0.0.0.0 --port 8000
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=systemzero
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/systemzero/logs /opt/systemzero/data
+
+[Install]
+WantedBy=multi-user.target

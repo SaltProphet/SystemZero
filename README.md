@@ -9,8 +9,8 @@ System//Zero is a tactical clarity tool for tracking how systems behave — plat
 
 ---
 
-## Current Status: Phase 5  
-FastAPI REST API and CLI server are live. Core capture → template → drift pipeline is stable with 111/111 tests passing. Operators can launch `run.py server` for HTTP access to captures, templates, logs, and dashboard data.
+## Current Status: Phase 6  
+Authentication, observability, deployment packaging, and config are in place. FastAPI REST API + CLI server with 161/161 tests passing; container, systemd, and PM2 options are available via SZ_* environment configuration.
 
 ---
 

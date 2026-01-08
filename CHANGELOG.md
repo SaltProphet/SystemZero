@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Phase 6.3-6.4] - 2026-01-08 - Deployment Packaging & Configuration ✓ COMPLETE
+
+### Summary
+Shipped environment-driven configuration plus deployment artifacts (Docker, compose, systemd, PM2). Server now consumes SZ_* env overrides for logging, security, and observability toggles. Tests remain fully green (161/161).
+
+### Highlights
+- **Config loader**: Merges config/settings.yaml with SZ_* env vars; validates log paths, CORS origins, rate limits, health/metrics toggles
+- **Server wiring**: FastAPI uses config for logging, CORS, rate limiting, request size limits, trusted hosts; health/metrics endpoints can be disabled
+- **Containerization**: Updated Dockerfile (multi-stage, non-root, healthcheck, env defaults) and docker-compose profile with volumes and envs
+- **Service runners**: systemd unit for uvicorn factory start; PM2 ecosystem config with dev/prod envs and log rotation
+
+### Deliverables
+- core/utils/config.py (get_config with YAML + SZ_* overrides)
+- interface/api/server.py (config-driven logging/security; endpoint toggles)
+- Dockerfile (env defaults, healthcheck, factory startup)
+- docker-compose.yml (SZ_* envs, mounts, healthcheck)
+- scripts/systemzero.service (systemd unit)
+- scripts/ecosystem.config.js (PM2 config)
+
+### Testing
+- Full suite: 161/161 tests passing (includes auth + observability suites)
+
+
 ## [Phase 6.2] - 2026-01-07 - Observability: Logging, Metrics, Health ✓ COMPLETE
 
 ### Summary

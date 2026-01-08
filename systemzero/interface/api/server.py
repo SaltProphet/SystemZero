@@ -11,6 +11,8 @@ from pydantic import BaseModel
 from interface.api.auth import verify_api_key, get_key_manager, Role, APIKeyManager
 from core.observability import get_logger, get_metrics, get_health_checker, configure_logging
 from core.observability.middleware import configure_request_logging
+from core.utils.config import get_config
+from interface.api.security import configure_security
 
 from core.accessibility import TreeCapture
 from core.normalization import TreeNormalizer, SignatureGenerator
@@ -27,8 +29,13 @@ logger = get_logger(__name__)
 metrics = get_metrics()
 health_checker = get_health_checker()
 
-# Configure structured logging (JSON in production, standard in dev)
-configure_logging(level="INFO", json_output=False)
+# Load configuration and configure logging
+cfg = get_config()
+configure_logging(
+    level=cfg.get("log_level", "INFO"),
+    json_output=cfg.get("json_logs", False),
+    log_file=Path(cfg.get("log_path", "logs/systemzero.log"))
+)
 
 
 # Pydantic models for request/response validation
@@ -101,8 +108,17 @@ app = FastAPI(
     version="0.6.1"
 )
 
-# Configure request logging middleware
+# Configure request logging and security middleware
 configure_request_logging(app)
+configure_security(
+    app,
+    cors_origins=cfg.get("cors_origins"),
+    rate_limit_rpm=cfg.get("rate_limit_rpm", 100),
+    rate_limit_burst=cfg.get("rate_limit_burst", 20),
+    max_request_size_mb=cfg.get("max_request_size_mb", 10),
+    enable_rate_limiting=cfg.get("enable_rate_limiting", True),
+    trusted_hosts=cfg.get("trusted_hosts")
+)
 
 
 @app.get("/")
@@ -127,6 +143,8 @@ def root():
 @app.get("/health")
 def health_check() -> Dict[str, Any]:
     """Health check endpoint with dependency checks."""
+    if not cfg.get("enable_health", True):
+        raise HTTPException(status_code=404, detail="Health endpoint disabled")
     logger.info("Health check requested")
     return health_checker.run_checks()
 
@@ -134,6 +152,8 @@ def health_check() -> Dict[str, Any]:
 @app.get("/metrics")
 def get_metrics_endpoint() -> Dict[str, Any]:
     """Get metrics data (counters, histograms, gauges)."""
+    if not cfg.get("enable_metrics", True):
+        raise HTTPException(status_code=404, detail="Metrics endpoint disabled")
     logger.info("Metrics requested")
     return metrics.get_metrics()
 

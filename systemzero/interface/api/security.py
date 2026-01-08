@@ -119,7 +119,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         allowed, error_msg = self.limiter.check_rate_limit(client_id)
         
         if not allowed:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=error_msg,
                 headers={

@@ -215,16 +215,17 @@ Goal: Expose pipeline operations over HTTP and provide a CLI server for operator
 - Package server launch in container/task runners
 - Expose template versioning endpoints
 
-🔮 Phase 6: Observability + Deployment Hardening [PLANNING]
+🔮 Phase 6: Observability + Deployment Hardening [IN PROGRESS]
 
 Goal: Secure, observable deployment with operator metrics and configuration management.
 
-- Add authentication/authorization on API (tokens, roles)
-- Integrate structured request logging and metrics (latency, error rates)
-- Add health/readiness probes and graceful shutdown hooks
-- Provide Docker image + compose profile with volume mounts for logs/templates
-- Expand dashboard data to include API health and ingestion counters
+✅ 6.1 Authentication & Authorization (API keys + RBAC) — complete
+✅ 6.2 Observability (structured logging, metrics, health) — complete
+✅ 6.3 Deployment packaging — Dockerfile, docker-compose profile, systemd unit, PM2 config
+✅ 6.4 Configuration layer — YAML + SZ_* env overrides for logging, security, health/metrics toggles
+⬜ 6.5 CI pipeline — lint/test/build + image build
+⬜ 6.6 Security hardening + docs — tighten defaults (CORS/rate limits), deployment guide, checklist
 
-🛠 Tools: YAML, pathlib, csv, json
+🛠 Tools: YAML, pathlib, csv, json, Docker, systemd, PM2, GitHub Actions
 
 This roadmap is modular. Each phase can be tracked as a GitHub Project or Issue board. All modules are deterministic and testable in isolation.

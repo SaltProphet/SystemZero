@@ -122,7 +122,7 @@ sudo chown -R systemzero:systemzero /opt/systemzero
 
 ```bash
 # Copy service file
-sudo cp deployment/systemzero.service /etc/systemd/system/
+sudo cp systemzero/scripts/systemzero.service /etc/systemd/system/
 
 # Reload systemd
 sudo systemctl daemon-reload
@@ -162,14 +162,27 @@ sudo systemctl stop systemzero
 # Disable (prevent start on boot)
 sudo systemctl disable systemzero
 
-# Reload configuration
-sudo systemctl reload systemzero
-```
+### 3. Configuration (SZ_* envs)
 
----
+Environment variables (prefer SZ_* names; legacy vars are deprecated):
 
-## PM2 Deployment
+| Variable | Purpose | Default | Production Recommendation |
+|---|---|---|---|
+| SZ_LOG_LEVEL | Log level | INFO | INFO or WARNING |
+| SZ_JSON_LOGS | Enable JSON logs | true in container | true |
+| SZ_LOG_PATH | Log file path | /app/logs/systemzero.log | Point to writable volume |
+| SZ_ENABLE_HEALTH | Enable /health | true | true (optionally behind firewall) |
+| SZ_ENABLE_METRICS | Enable /metrics | true | true (scope via firewall) |
+| SZ_ENABLE_RATE_LIMITING | Rate limiting middleware | true | true |
+| SZ_RATE_LIMIT_RPM | Requests/minute | 60 | 60–200 based on capacity |
+| SZ_RATE_LIMIT_BURST | Burst in 5s window | 40 | 10–40 |
+| SZ_MAX_REQUEST_SIZE_MB | Request size limit | 10 | 5–10 |
+| SZ_CORS_ORIGINS | Comma-separated origins | http://localhost,... | Restrict to your domains |
+| SZ_TRUSTED_HOSTS | Trusted Host headers | (empty) | your-api.example.com |
+| SZ_API_KEYS_PATH | API keys file | /app/config/api_keys.yaml | Mount secrets volume |
 
+**Example (production)**:
+```bash
 ### 1. Install PM2
 
 ```bash
@@ -257,6 +270,13 @@ instances: 2,      // Specific number
 
 ---
 
+
+### Security Hardening Tips
+
+- Restrict `SZ_CORS_ORIGINS` to trusted domains (avoid `*` in production)
+- Set `SZ_TRUSTED_HOSTS` to your public hostnames to block Host header spoofing
+- Keep `/metrics` behind firewall or allowlist; rely on `SZ_ENABLE_METRICS` only when monitored
+- Store `api_keys.yaml` on a read-only secret volume and rotate keys regularly
 ## Configuration
 
 ### Environment Variables

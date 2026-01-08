@@ -9,11 +9,19 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SYSTEMZERO_ENV=development
-      - LOG_LEVEL=INFO
-      - LOG_JSON=false
-      - API_HOST=0.0.0.0
-      - API_PORT=8000
+      # System//Zero config via SZ_* env vars
+      - SZ_LOG_LEVEL=INFO
+      - SZ_JSON_LOGS=true
+      - SZ_LOG_PATH=/app/logs/systemzero.log
+      - SZ_ENABLE_HEALTH=true
+      - SZ_ENABLE_METRICS=true
+      - SZ_ENABLE_RATE_LIMITING=true
+      - SZ_RATE_LIMIT_RPM=100
+      - SZ_RATE_LIMIT_BURST=20
+      - SZ_MAX_REQUEST_SIZE_MB=10
+      - SZ_API_KEYS_PATH=/app/config/api_keys.yaml
+      # Optional: Override CORS origins (comma-separated)
+      # - SZ_CORS_ORIGINS=http://localhost:3000,http://localhost:8080
     volumes:
       # Mount code for development (comment out for production)
       - ./systemzero:/app/systemzero
@@ -24,7 +32,7 @@ services:
       - ./systemzero/config:/app/config
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
       interval: 30s
       timeout: 5s
       retries: 3
