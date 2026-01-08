@@ -37,6 +37,11 @@ jobs:
           ls -la
           echo "Smoke test complete" >> SMOKE_SUMMARY.txt
 
+      - name: Parse and report metrics
+        if: success() || failure()
+        run: |
+          python scripts/parse_locust_metrics.py >> $GITHUB_STEP_SUMMARY || echo "Metrics parsing skipped"
+
       - name: Upload Locust artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -49,8 +54,10 @@ jobs:
           if-no-files-found: warn
 
       - name: Job summary
+        if: success() || failure()
         run: |
-          echo "### Locust Smoke Test" >> $GITHUB_STEP_SUMMARY
+          echo "### Locust Smoke Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Users: 20, Spawn rate: 5/s, Duration: 30s" >> $GITHUB_STEP_SUMMARY
           echo "- Host: http://127.0.0.1:8000" >> $GITHUB_STEP_SUMMARY
-          echo "Artifacts: locust_stats.csv, locust_requests.csv, SMOKE_SUMMARY.txt" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:** locust_stats.csv, locust_requests.csv" >> $GITHUB_STEP_SUMMARY
